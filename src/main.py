@@ -38,8 +38,8 @@ weights = [exponential_function(x) for x in participants]
 print("Remaining contestants and their weights:")
 for p, w in zip(participants, weights):
     print(f"{name_map[p]:<10} (#{p}): weight = {w:.2f}")
-
-    # === Plot the weights at the start ===
+''' === Uncomment to visualize initial weights ===
+# === Plot the weights at the start ===
 names = [name_map[p] for p in participants]
 
 plt.figure(figsize=(10, 6))
@@ -51,8 +51,9 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 plt.grid(axis='y', linestyle='--', alpha=0.7)
 plt.show()
+'''
 
-time.sleep(2)  # Pause before starting the draw
+time.sleep(1)  # Pause before starting the draw
 
 # === Run 12 rounds ===
 for round_number in range(1, 13):
