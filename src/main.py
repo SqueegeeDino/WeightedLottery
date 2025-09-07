@@ -70,8 +70,8 @@ choice = input(BG_YELLOW + "\nWould you like to clamp the weights? (Y/N): ").str
 if choice == 'y':
     while True:
         try:
-            cl_high = int(input("Enter high clamp value: "))
-            cl_low = int(input("Enter low clamp value: " ))
+            cl_high = int(input(BG_YELLOW + "Enter high clamp value: "))
+            cl_low = int(input(BG_YELLOW + "Enter low clamp value: " ))
             if cl_low >= cl_high:
                 print(RED + "Low clamp value must be less than high clamp value. Please try again." + RESET)
                 continue
@@ -113,4 +113,4 @@ for round_number in range(1, 13):
 # === Final summary ===
 print(GREEN + "\n=== Final Winner Order ===" + RESET)
 for i, winner in enumerate(winners, start=1):
-    print(RESET + f"{i}. " + BLUE + f"{name_map[winner]} + BLUE + (#{winner})" + RESET)
+    print(RESET + f"{i}. " + BLUE + f"{name_map[winner]} (#{winner})" + RESET)
