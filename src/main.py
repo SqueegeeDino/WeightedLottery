@@ -2,6 +2,15 @@ import random
 import time
 import matplotlib.pyplot as plt
 
+# Text colors
+RED = '\033[31m'
+GREEN = '\033[32m'
+BLUE = '\033[34m'
+RESET = '\033[0m' # Resets all formatting
+
+# Background colors
+BG_YELLOW = '\033[43m'
+
 # === Global parameters for the exponential function (adjust as needed) ===
 m = 1
 n = 1.5
@@ -29,15 +38,19 @@ name_map = {
 def exponential_function(x):
     return m * n ** (x + z) + b
 
+# === Define the clamp function ===
+def clamp(value, min_val, max_val):
+        return max(min(value, max_val), min_val)
+
 # === Initialize participants and compute initial weights ===
 participants = list(range(1, 13))  # Numbers 1 to 12
 winners = []
+weights = [exponential_function(x) for x in participants]
 
 # Show weights before the draw
-weights = [exponential_function(x) for x in participants]
-print("Remaining contestants and their weights:")
+print(BLUE + "Remaining contestants and their weights:" + RESET)
 for p, w in zip(participants, weights):
-    print(f"{name_map[p]:<10} (#{p}): weight = {w:.2f}")
+    print(BLUE + f"{name_map[p]:<10}" + RESET + f"(#{p}): weight = {w:.2f}")
 ''' === Uncomment to visualize initial weights ===
 # === Plot the weights at the start ===
 names = [name_map[p] for p in participants]
@@ -53,6 +66,30 @@ plt.grid(axis='y', linestyle='--', alpha=0.7)
 plt.show()
 '''
 
+choice = input(BG_YELLOW + "\nWould you like to clamp the weights? (Y/N): ").strip().lower()
+if choice == 'y':
+    while True:
+        try:
+            cl_high = int(input("Enter high clamp value: "))
+            cl_low = int(input("Enter low clamp value: " ))
+            if cl_low >= cl_high:
+                print(RED + "Low clamp value must be less than high clamp value. Please try again." + RESET)
+                continue
+            break
+        except ValueError:
+            print(RED + "Invalid input. Please enter integer values." + RESET)
+    
+    # Apply clamping to weights
+    weights = [clamp(w, cl_low, cl_high) for w in weights]
+    
+    # Show clamped weights
+    print(RESET + GREEN + "\nClamped weights:" + RESET)
+    for p, w in zip(participants, weights):
+        print(BLUE + f"{name_map[p]:<10}" + RESET + f"(#{p}): weight = {w:.2f}")
+elif choice != 'n':
+    print(RED + "Invalid input. Proceeding without clamping." + RESET)
+
+
 time.sleep(1)  # Pause before starting the draw
 
 # === Run 12 rounds ===
@@ -65,7 +102,7 @@ for round_number in range(1, 13):
     winners.append(winner)
 
     # Announce winner
-    print(f"\n🎉 Winner of Round {round_number}: {name_map[winner]} (#{winner})")
+    print(RESET + f"\n🎉 Winner of Round {round_number}: " + BLUE + f"{name_map[winner]} (#{winner})" + RESET)
 
     # Remove winner from participant pool
     index = participants.index(winner)
@@ -74,6 +111,6 @@ for round_number in range(1, 13):
     time.sleep(1)  # Pause for dramatic effect
 
 # === Final summary ===
-print("\n=== Final Winner Order ===")
+print(GREEN + "\n=== Final Winner Order ===" + RESET)
 for i, winner in enumerate(winners, start=1):
-    print(f"{i}. {name_map[winner]} (#{winner})")
+    print(RESET + f"{i}. " + BLUE + f"{name_map[winner]} + BLUE + (#{winner})" + RESET)
