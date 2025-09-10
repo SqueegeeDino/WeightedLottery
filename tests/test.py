@@ -1,41 +1,48 @@
-# Define the clamp function
-def clamp(value, min_val, max_val):
-        return max(min(value, max_val), min_val)
+# hello_world.py
+import FreeSimpleGUI as sg
 
-# Create high and low clamp values
-cl_high = 10
-cl_low = 1
-''' === Uncomment to get user input for clamp values ===
-# Get user input for high and low clamp values
+# Column 1 layout
+column1 = [
+    [sg.Text("Column 1")],
+    [sg.Button("Button 1")],
+    [sg.Input("Input 1")],
+]
+
+# Column 2 layout
+column2 = [
+    [sg.Text("Column 2")],
+    [sg.Button("Button 2")],
+    [sg.Input("Input 2")],
+]
+
+# Terminal output area
+terminal_output = [
+    [sg.Multiline(
+        size=(80, 10), 
+        disabled=True, 
+        autoscroll=True, 
+        key='-TERMINAL-', 
+        background_color='black', 
+        text_color='white'
+    )]
+]
+
+# Full layout: two columns on top, terminal output below
+layout = [
+    [sg.Column(column1), sg.Column(column2)],
+    [sg.Frame("Terminal Output", terminal_output)]
+]
+
+# Create the window
+window = sg.Window("Two Columns with Terminal", layout, finalize=True)
+
+# Example event loop
 while True:
-    try:
-        cl_high = int(input("Enter high clamp value: "))
-        cl_low = int(input("Enter low clamp value: "))
-        if cl_low >= cl_high:
-            print("Low clamp value must be less than high clamp value. Please try again.")
-            continue
+    event, values = window.read()
+    if event == sg.WINDOW_CLOSED:
         break
-    except ValueError:
-        print("Invalid input. Please enter integer values.")
 
-# Test the clamp function
-print(clamp(15, cl_low, cl_high))
-'''
+    # Print events and values to the terminal area
+    window['-TERMINAL-'].print(f"Event: {event}, Values: {values}")
 
-# Text colors
-RED = '\033[31m'
-GREEN = '\033[32m'
-BLUE = '\033[34m'
-RESET = '\033[0m' # Resets all formatting
-
-print(RED + "This text is red." + RESET)
-print(GREEN + "This text is green." + RESET)
-print(BLUE + "This text is blue." + RESET)
-
-# Background colors
-BG_YELLOW = '\033[43m'
-print(BG_YELLOW + "This text has a yellow background." + RESET)
-
-# Combined formatting
-print(RED + BG_YELLOW + "Red text on a yellow background." + RESET)
-print(GREEN + "Green text" + RESET + " with normal text in between." + RESET)
+window.close()
