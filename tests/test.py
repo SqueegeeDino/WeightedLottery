@@ -1,6 +1,9 @@
 # hello_world.py
 import FreeSimpleGUI as sg
 
+# Header Image
+image_file = r"C:\Users\CormacC\Documents\GitHub\WeightedLottery\src\logo.png"  # Replace with your image file path
+
 # Column 1 layout
 column1 = [
     [sg.Text("Column 1")],
@@ -29,7 +32,8 @@ terminal_output = [
 
 # Full layout: two columns on top, terminal output below
 layout = [
-    [sg.Column(column1), sg.Column(column2)],
+    [sg.Image(filename=image_file)],
+    [sg.Column(column1), sg.VSeparator(), sg.Column(column2)],
     [sg.Frame("Terminal Output", terminal_output)]
 ]
 
