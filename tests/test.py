@@ -70,7 +70,7 @@ if player_count and player_count.isdigit():
 # Full layout: Image and terminal at top, then two colums, then terminal at bottom
 layout = [
     [
-        sg.Image(filename=image_file),
+        sg.Image(filename=image_file), sg.Button("Exit"),
         sg.VSeparator(),
         sg.Frame("Player List", terminal_output_2)
     ],
@@ -90,15 +90,12 @@ window = sg.Window("Two Columns with Terminal", layout, finalize=True)
 # Example event loop
 while True:
     event, values = window.read()
-    if event == sg.WINDOW_CLOSED:
+    if event == sg.WINDOW_CLOSED or event == "Exit":
         break
     elif event == "Button 1":
-        key = values['Input 1']
-        my_list.append(name)
-        window['-TERMINAL-'].print(f"{player_count}",)
-        window['-TERMINAL2-'].print(f"{name}: #{key}")
+        keySearch = values['Input 1']
+        window['-TERMINAL2-'].print(f"{my_dict[keySearch] if keySearch in my_dict else 'Key not found'}")
     elif event == "Button 2":
-        name = values['Input 1']
-        window['-TERMINAL-'].print(f"{my_dict[name]}",)
+        window['-TERMINAL-'].print(f"{my_dict}",)
 
 window.close()
