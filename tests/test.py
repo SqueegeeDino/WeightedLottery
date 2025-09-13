@@ -18,6 +18,11 @@ params = {
 
 params_default = params.copy()  # Store default parameters for reset
 
+# Clamping parameters
+clamp_bool = False
+clamp_high = 999999
+clamp_low = -999999
+
 # Main dictionary to hold player names and their assigned numbers
 my_dict = {}
 
@@ -34,16 +39,23 @@ def exponential_function(x):
 def clamp(value, min_val, max_val):
         return max(min(value, max_val), min_val)
 
-# Function to control slider logic in GUI
-def controlSlider(param_name, slider, text, label):
-    global params
-    value = values[f'{slider}']  # Get value from GUI slider
-    params[param_name] = value   # Dynamically assign value to param
-    window[f'{text}'].update(f"{label} = {value}")
-    window['-TERMINAL-'].update('')
+# Define print weights function
+def print_weights():
+    global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
     weights = [exponential_function(x) for x in participants]
+    if clamp_bool:
+        weights = [clamp(w, clamp_low, clamp_high) for w in weights]
+    window['-TERMINAL-'].update('')
     for p, w in zip(participants, weights):
         window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+
+# Function to control slider logic in GUI
+def controlSlider(param_name, slider, text, label):
+    global params, weights, participants
+    value = values[f'{slider}']  # Get value from GUI slider
+    params[param_name] = value   # Dynamically assign value to param
+    window[f'{text}'].update(f"{label} = {value}") # Update text display
+    print_weights()  # Recalculate and print weights
     return value
 
 # === GUI Layout ===
@@ -176,9 +188,15 @@ while True:
         controlSlider('b', 'bSlider', 'bText', 'B')
     if event == 'clampWeights':
         if values['clampWeights']:
+            clamp_bool = True
+            print_weights()
             window['clampHigh'].update(disabled=False)
             window['clampLow'].update(disabled=False)
         else:
+            clamp_bool = False
+            clamp_high = 999999
+            clamp_low = -999999
+            print_weights()
             window['clampHigh'].update(disabled=True)
             window['clampLow'].update(disabled=True)
     if event == "buttonDefaults":
@@ -197,5 +215,25 @@ while True:
         window['-TERMINAL-'].update('')
         for p, w in zip(participants, weights):
             window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+    if event == "clampHigh":
+        try:
+            clamp_high = values['clampHigh']
+            if clamp_low >= clamp_high:
+                window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
+                continue
+            print_weights()
+        except ValueError:
+            window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
+            continue
+    if event == "clampLow":
+        try:
+            clamp_low = values['clampHigh']
+            if clamp_low >= clamp_high:
+                window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
+                continue
+            print_weights()
+        except ValueError:
+            window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
+            continue
 
 window.close()
