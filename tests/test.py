@@ -6,33 +6,32 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# === Global parameters for the exponential function (adjust as needed) ===
+# === Global parameters ===
+# Parameters for the exponential function (adjust as needed)
 m = 1.0
 n = 1.5
 x_offset = 0
 z = 5.0
 b = 0
 
-# === Define the exponential function ===
+# Main dictionary to hold player names and their assigned numbers
+my_dict = {}
+
+# === Define functions ===
+# Define the exponential function
 def exponential_function(x):
     return m * n ** (x + z) + b
+
+# Define the clamp function
+def clamp(value, min_val, max_val):
+        return max(min(value, max_val), min_val)
 
 # Function to control slider logic in GUI
 def controlSlider(x, slider, text, label):
     x = (values[f'{slider}'])
     window[f'{text}'].update(f"{label} = {x}")
 
-# Generate x values (from -10 to 10)
-x_values = np.linspace(-10, 10, 400)
-y_values = exponential_function(x_values)
-
-# Test dictionary
-my_dict = {}
-
-# Flexible dictionary population
-#num_keys = int(input("Enter number of key-value pairs to add to the dictionary: "))
-
-
+# === GUI Layout ===
 # Header Image
 image_file = r"C:\Users\CormacC\Documents\GitHub\WeightedLottery\src\logo.png"  # Replace with your image file path
 
@@ -108,15 +107,27 @@ layout = [
     [
         [sg.Column(column1), sg.Column(column2),],
         sg.VSeparator(),
-        sg.Frame("Plot Area", plotArea)
+        #sg.Frame("Plot Area", plotArea)
     ]
 ]
 
 # Create the window
 window = sg.Window("Two Columns with Terminal", layout, finalize=True)
 
+# === Lottery Logic ===
+# Initialize participants and compute initial weights
+participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
+winners = []
+weights = [exponential_function(x) for x in participants]
+
+#S Show weights before the draw
+BLUE = '\033[94m'
+RESET = '\033[0m'
+for p, w in zip(participants, weights):
+    window['-TERMINAL-'].print(BLUE + f"{my_dict[p]:<10}" + RESET + f"(#{p}): weight = {w:.2f}")
+
 # Print player list to terminal
-window['-TERMINAL2-'].print(f"{my_dict}")
+window['-TERMINAL2-'].print(f"Player List:{participants}")
 
 # Print each player and their assigned number
 for number, player in my_dict.items():
