@@ -16,6 +16,8 @@ params = {
     "b": 0
 }
 
+params_default = params.copy()  # Store default parameters for reset
+
 # Main dictionary to hold player names and their assigned numbers
 my_dict = {}
 
@@ -51,8 +53,8 @@ image_file = r"C:\Users\CormacC\Documents\GitHub\WeightedLottery\src\logo.png"  
 # Column 1 layout
 column1 = [
     [sg.Text("Column 1")],
-    [sg.Button("Button 1")],
-    [sg.Input(key='Input 1')],
+    [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"), sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights')],
+    [sg.Input(key='clampHigh', size=(10,1)), sg.Text("Clamp High"), sg.Input(key='clampLow', size=(10,1)), sg.Text("Clamp Low")],
 ]
 
 # Column 2 layout
@@ -159,12 +161,21 @@ while True:
         controlSlider('z', 'zSlider', 'zText', 'Z')
     if event == 'bSlider':
         controlSlider('b', 'bSlider', 'bText', 'B')
-    elif event == "Button 1":
-        try:
-            keySearch = (values['Input 1'])
-        except ValueError:
-            window['-TERMINAL2-'].print("Please enter a valid integer key.")
-            continue
-        window['-TERMINAL2-'].print(f"{my_dict[keySearch] if keySearch in my_dict else 'Key not found'}")
+    if event == "buttonDefaults":
+        params = params_default.copy()
+        window['mSlider'].update(params['m'])
+        window['nSlider'].update(params['n'])
+        window['xSlider'].update(params['x_offset'])
+        window['zSlider'].update(params['z'])
+        window['bSlider'].update(params['b'])
+        window['mText'].update(f"M = {params['m']}")
+        window['nText'].update(f"N = {params['n']}")
+        window['xText'].update(f"X = {params['x_offset']}")
+        window['zText'].update(f"Z = {params['z']}")
+        window['bText'].update(f"B = {params['b']}")
+        weights = [exponential_function(x) for x in participants]
+        window['-TERMINAL-'].update('')
+        for p, w in zip(participants, weights):
+            window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
 
 window.close()
