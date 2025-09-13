@@ -17,26 +17,14 @@ b = 0
 def exponential_function(x):
     return m * n ** (x + z) + b
 
+# Function to control slider logic in GUI
+def controlSlider(x, slider, text, label):
+    x = (values[f'{slider}'])
+    window[f'{text}'].update(f"{label} = {x}")
+
 # Generate x values (from -10 to 10)
 x_values = np.linspace(-10, 10, 400)
 y_values = exponential_function(x_values)
-
-# Plot the function
-plt.figure(figsize=(8, 5))
-plt.plot(x_values, y_values, label=f'{m}·{n}^(x + {z}) + {b}')
-plt.title('Exponential Function')
-plt.xlabel('x')
-plt.ylabel('f(x)')
-plt.grid(True)
-plt.axhline(0, color='black', linewidth=0.8)
-plt.axvline(0, color='black', linewidth=0.8)
-plt.legend()
-
-def draw_figure(canvas, figure):
-    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
-    figure_canvas_agg.draw()
-    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
-    return figure_canvas_agg
 
 # Test dictionary
 my_dict = {}
@@ -127,10 +115,6 @@ layout = [
 # Create the window
 window = sg.Window("Two Columns with Terminal", layout, finalize=True)
 
-# Draw the initial plot
-fig = plt.gcf()  # Get the current figure
-fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
-
 # Print player list to terminal
 window['-TERMINAL2-'].print(f"{my_dict}")
 
@@ -144,22 +128,15 @@ while True:
     if event == sg.WINDOW_CLOSED or event == "Exit":
         break
     if event == 'mSlider':
-        m = (values['mSlider'])
-        window['mText'].update(f"M = {m}")
-        fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
-        window.refresh() # Refreshes the PySimpleGUI window
+        controlSlider(m, 'mSlider', 'mText', 'M')
     if event == 'nSlider':
-        n = (values['nSlider'])
-        window['nText'].update(f"N = {n}")
+        controlSlider(n, 'nSlider', 'nText', 'N')
     if event == 'xSlider':
-        x_offset = (values['xSlider'])
-        window['xText'].update(f"X = {x_offset}")
+        controlSlider(x_offset, 'xSlider', 'xText', 'X')
     if event == 'zSlider':
-        z = (values['zSlider'])
-        window['zText'].update(f"Z = {z}")
+        controlSlider(z, 'zSlider', 'zText', 'Z')
     if event == 'bSlider':
-        b = (values['bSlider'])
-        window['bText'].update(f"B = {b}")
+        controlSlider(b, 'bSlider', 'bText', 'B')
     elif event == "Button 1":
         try:
             keySearch = (values['Input 1'])
