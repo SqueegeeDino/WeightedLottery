@@ -53,11 +53,13 @@ image_file = r"C:\Users\CormacC\Documents\GitHub\WeightedLottery\src\logo.png"  
 # Column 1 layout
 column1 = [
     [sg.Text("Column 1")],
-    [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"), sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights')],
-    [sg.Input(key='clampHigh', size=(10,1)), sg.Text("Clamp High"), sg.Input(key='clampLow', size=(10,1)), sg.Text("Clamp Low")],
+    [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"), 
+     sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights', enable_events=True, tooltip="Enable weight clamping"),
+     sg.Button("Run Lottery", key='buttonRun', tooltip="Run the lottery with current settings")],
+    [sg.Input(key='clampHigh', size=(10,1), disabled=True), sg.Text("Clamp High"), sg.Input(key='clampLow', size=(10,1), disabled=True), sg.Text("Clamp Low")],
 ]
 
-# Column 2 layout
+# Column 2 layout. Slider controls for m, n, x_offset, z, b
 column2 = [
     [sg.Text("Column 2")],
     [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
@@ -129,6 +131,17 @@ layout = [
 # Create the window
 window = sg.Window("Two Columns with Terminal", layout, finalize=True)
 
+window['mSlider'].update(params['m'])
+window['nSlider'].update(params['n'])
+window['xSlider'].update(params['x_offset'])
+window['zSlider'].update(params['z'])
+window['bSlider'].update(params['b'])
+window['mText'].update(f"M = {params['m']}")
+window['nText'].update(f"N = {params['n']}")
+window['xText'].update(f"X = {params['x_offset']}")
+window['zText'].update(f"Z = {params['z']}")
+window['bText'].update(f"B = {params['b']}")
+
 # === Lottery Logic ===
 # Initialize participants and compute initial weights
 participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
@@ -161,6 +174,13 @@ while True:
         controlSlider('z', 'zSlider', 'zText', 'Z')
     if event == 'bSlider':
         controlSlider('b', 'bSlider', 'bText', 'B')
+    if event == 'clampWeights':
+        if values['clampWeights']:
+            window['clampHigh'].update(disabled=False)
+            window['clampLow'].update(disabled=False)
+        else:
+            window['clampHigh'].update(disabled=True)
+            window['clampLow'].update(disabled=True)
     if event == "buttonDefaults":
         params = params_default.copy()
         window['mSlider'].update(params['m'])
