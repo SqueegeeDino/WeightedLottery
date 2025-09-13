@@ -7,12 +7,14 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # === Global parameters ===
-# Parameters for the exponential function (adjust as needed)
-m = 1.0
-n = 1.5
-x_offset = 0
-z = 5.0
-b = 0
+# Global parameter dictionary
+params = {
+    "m": 1,
+    "n": 1.5,
+    "x_offset": 0,
+    "z": 5,
+    "b": 0
+}
 
 # Main dictionary to hold player names and their assigned numbers
 my_dict = {}
@@ -20,6 +22,10 @@ my_dict = {}
 # === Define functions ===
 # Define the exponential function
 def exponential_function(x):
+    m = params['m']
+    n = params['n']
+    z = params['z']
+    b = params['b']
     return m * n ** (x + z) + b
 
 # Define the clamp function
@@ -27,9 +33,16 @@ def clamp(value, min_val, max_val):
         return max(min(value, max_val), min_val)
 
 # Function to control slider logic in GUI
-def controlSlider(x, slider, text, label):
-    x = (values[f'{slider}'])
-    window[f'{text}'].update(f"{label} = {x}")
+def controlSlider(param_name, slider, text, label):
+    global params
+    value = values[f'{slider}']  # Get value from GUI slider
+    params[param_name] = value   # Dynamically assign value to param
+    window[f'{text}'].update(f"{label} = {value}")
+    window['-TERMINAL-'].update('')
+    weights = [exponential_function(x) for x in participants]
+    for p, w in zip(participants, weights):
+        window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+    return value
 
 # === GUI Layout ===
 # Header Image
@@ -45,11 +58,11 @@ column1 = [
 # Column 2 layout
 column2 = [
     [sg.Text("Column 2")],
-    [sg.Text(f"M = {m}", background_color='white', text_color='black', key="mText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"N = {n}", background_color='white', text_color='black', key="nText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"X = {x_offset}", background_color='white', text_color='black', key="xText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='xSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"Z = {z}", background_color='white', text_color='black', key="zText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='zSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"B = {b}", background_color='white', text_color='black', key="bText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"N = {params['n']}", background_color='white', text_color='black', key="nText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"X = {params['x_offset']}", background_color='white', text_color='black', key="xText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='xSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"Z = {params['z']}", background_color='white', text_color='black', key="zText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='zSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"B = {params['b']}", background_color='white', text_color='black', key="bText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
 ]
 
 # Plot area
@@ -120,34 +133,32 @@ participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
 weights = [exponential_function(x) for x in participants]
 
-#S Show weights before the draw
-BLUE = '\033[94m'
-RESET = '\033[0m'
+# Show weights before the draw
 for p, w in zip(participants, weights):
-    window['-TERMINAL-'].print(BLUE + f"{my_dict[p]:<10}" + RESET + f"(#{p}): weight = {w:.2f}")
+    window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
 
 # Print player list to terminal
-window['-TERMINAL2-'].print(f"Player List:{participants}")
+window['-TERMINAL2-'].print(f"Participants:{participants}")
 
 # Print each player and their assigned number
 for number, player in my_dict.items():
     window['-TERMINAL2-'].print(f"{number}: {player}")
 
-# Example event loop
+# === GUI Event Loop ===
 while True:
     event, values = window.read()
     if event == sg.WINDOW_CLOSED or event == "Exit":
         break
     if event == 'mSlider':
-        controlSlider(m, 'mSlider', 'mText', 'M')
+        controlSlider('m', 'mSlider', 'mText', 'M')
     if event == 'nSlider':
-        controlSlider(n, 'nSlider', 'nText', 'N')
+        controlSlider('n', 'nSlider', 'nText', 'N')
     if event == 'xSlider':
-        controlSlider(x_offset, 'xSlider', 'xText', 'X')
+        controlSlider('x_offset', 'xSlider', 'xText', 'X')
     if event == 'zSlider':
-        controlSlider(z, 'zSlider', 'zText', 'Z')
+        controlSlider('z', 'zSlider', 'zText', 'Z')
     if event == 'bSlider':
-        controlSlider(b, 'bSlider', 'bText', 'B')
+        controlSlider('b', 'bSlider', 'bText', 'B')
     elif event == "Button 1":
         try:
             keySearch = (values['Input 1'])
