@@ -3,6 +3,8 @@ import FreeSimpleGUI as sg
 import random
 import time
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # === Global parameters for the exponential function (adjust as needed) ===
 m = 1.0
@@ -10,6 +12,31 @@ n = 1.5
 x_offset = 0
 z = 5.0
 b = 0
+
+# === Define the exponential function ===
+def exponential_function(x):
+    return m * n ** (x + z) + b
+
+# Generate x values (from -10 to 10)
+x_values = np.linspace(-10, 10, 400)
+y_values = exponential_function(x_values)
+
+# Plot the function
+plt.figure(figsize=(8, 5))
+plt.plot(x_values, y_values, label=f'{m}·{n}^(x + {z}) + {b}')
+plt.title('Exponential Function')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.grid(True)
+plt.axhline(0, color='black', linewidth=0.8)
+plt.axvline(0, color='black', linewidth=0.8)
+plt.legend()
+
+def draw_figure(canvas, figure):
+    figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
+    figure_canvas_agg.draw()
+    figure_canvas_agg.get_tk_widget().pack(side='top', fill='both', expand=1)
+    return figure_canvas_agg
 
 # Test dictionary
 my_dict = {}
@@ -38,10 +65,16 @@ column2 = [
     [sg.Text(f"B = {b}", background_color='white', text_color='black', key="bText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
 ]
 
+# Plot area
+plotArea = [
+    [sg.Text('My Plot')],
+    [sg.Canvas(key='-CANVAS-', size=(400, 200))], # Adjust size as needed
+]
+
 # Terminal output area
 terminal_output = [
     [sg.Multiline(
-        size=(100, 10), 
+        size=(45, 8), 
         disabled=True, 
         autoscroll=True, 
         key='-TERMINAL-', 
@@ -53,7 +86,7 @@ terminal_output = [
 # Terminal output area 2
 terminal_output_2 = [
     [sg.Multiline(
-        size=(45, 15), 
+        size=(30, 8), 
         disabled=True, 
         autoscroll=True, 
         key='-TERMINAL2-', 
@@ -82,20 +115,21 @@ layout = [
     [
         sg.Image(filename=image_file),
         sg.VSeparator(),
-        sg.Frame("Player List", terminal_output_2), sg.Button("Exit"),
+        sg.Frame("Player List", terminal_output_2), sg.VSeparator(), sg.Frame("Terminal Output", terminal_output), sg.Button("Exit"),
     ],
     [
-        sg.Column(column1),
+        [sg.Column(column1), sg.Column(column2),],
         sg.VSeparator(),
-        sg.Column(column2)
-    ],
-    [
-        sg.Frame("Terminal Output", terminal_output)
+        sg.Frame("Plot Area", plotArea)
     ]
 ]
 
 # Create the window
 window = sg.Window("Two Columns with Terminal", layout, finalize=True)
+
+# Draw the initial plot
+fig = plt.gcf()  # Get the current figure
+fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
 
 # Print player list to terminal
 window['-TERMINAL2-'].print(f"{my_dict}")
@@ -112,6 +146,8 @@ while True:
     if event == 'mSlider':
         m = (values['mSlider'])
         window['mText'].update(f"M = {m}")
+        fig_canvas_agg = draw_figure(window['-CANVAS-'].TKCanvas, fig)
+        window.refresh() # Refreshes the PySimpleGUI window
     if event == 'nSlider':
         n = (values['nSlider'])
         window['nText'].update(f"N = {n}")
