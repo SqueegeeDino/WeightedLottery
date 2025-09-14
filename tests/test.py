@@ -176,6 +176,7 @@ while True:
     event, values = window.read()
     if event == sg.WINDOW_CLOSED or event == "Exit":
         break
+    # Sliders
     if event == 'mSlider':
         controlSlider('m', 'mSlider', 'mText', 'M')
     if event == 'nSlider':
@@ -186,6 +187,7 @@ while True:
         controlSlider('z', 'zSlider', 'zText', 'Z')
     if event == 'bSlider':
         controlSlider('b', 'bSlider', 'bText', 'B')
+    # Clamping
     if event == 'clampWeights':
         if values['clampWeights']:
             clamp_bool = True
@@ -199,25 +201,6 @@ while True:
             print_weights()
             window['clampHigh'].update(disabled=True)
             window['clampLow'].update(disabled=True)
-
-    if event == "buttonDefaults":
-        params = params_default.copy()
-        window['mSlider'].update(params['m'])
-        window['nSlider'].update(params['n'])
-        window['xSlider'].update(params['x_offset'])
-        window['zSlider'].update(params['z'])
-        window['bSlider'].update(params['b'])
-        window['mText'].update(f"M = {params['m']}")
-        window['nText'].update(f"N = {params['n']}")
-        window['xText'].update(f"X = {params['x_offset']}")
-        window['zText'].update(f"Z = {params['z']}")
-        window['bText'].update(f"B = {params['b']}")
-        window['clampWeights'].update(False)
-        clamp_bool = False
-        weights = [exponential_function(x) for x in participants]
-        window['-TERMINAL-'].update('')
-        for p, w in zip(participants, weights):
-            window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
     if event == "clampHigh":
         try:
             clamp_high = int(values['clampHigh'])
@@ -238,5 +221,41 @@ while True:
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
             continue
+    # Defaults button
+    if event == "buttonDefaults":
+        params = params_default.copy()
+        window['mSlider'].update(params['m'])
+        window['nSlider'].update(params['n'])
+        window['xSlider'].update(params['x_offset'])
+        window['zSlider'].update(params['z'])
+        window['bSlider'].update(params['b'])
+        window['mText'].update(f"M = {params['m']}")
+        window['nText'].update(f"N = {params['n']}")
+        window['xText'].update(f"X = {params['x_offset']}")
+        window['zText'].update(f"Z = {params['z']}")
+        window['bText'].update(f"B = {params['b']}")
+        window['clampWeights'].update(False)
+        clamp_bool = False
+        weights = [exponential_function(x) for x in participants]
+        window['-TERMINAL-'].update('')
+        for p, w in zip(participants, weights):
+            window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+    # Run Lottery button
+    if event == "buttonRun":
+        for round_number in range(1, int(player_count + 1)):
+            # Compute current weights for remaining participants
+            weights = [exponential_function(x) for x in participants]
+
+            # Pick the winner based on current weights
+            winner = random.choices(participants, weights=weights, k=1)[0]
+            winners.append(winner)
+
+            # Announce winner
+            print(f"\n🎉 Winner of Round {round_number}: "f"{my_dict[winner]} (#{winner})")
+
+            # Remove winner from participant pool
+            index = participants.index(winner)
+            participants.pop(index)
+
 
 window.close()
