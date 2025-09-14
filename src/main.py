@@ -1,4 +1,4 @@
-# hello_world.py
+# Weighted Lottery System with Adjustable Exponential Weighting
 import FreeSimpleGUI as sg
 import random
 import time
@@ -27,7 +27,7 @@ clamp_low = -999999
 my_dict = {} # Main dictionary to hold player names and their assigned numbers
 lottery_participants = []  # To hold participants for each lottery run  
 
-# === Define functions ===
+# === Define functions === 
 # Define the exponential function
 def exponential_function(x):
     m = params['m']
@@ -45,7 +45,12 @@ def odds_function(x):
     b = params['b']
     x = x + params['x_offset']
     return (m * n ** (x + z) + b) / (sum(weights))
-'''
+
+# Define the clamp function
+def clamp(value, min_val, max_val):
+        return max(min(value, max_val), min_val)
+
+''' Old separate print functions
 # Define print odds function
 def print_odds():
     global participants, weights, my_dict
@@ -55,11 +60,6 @@ def print_odds():
         window['-TERMINAL2-'].print(
     f"{my_dict[p]:<10}(#{p:<3}): odds = {o*100:6.2f}%"
 )
-'''
-# Define the clamp function
-def clamp(value, min_val, max_val):
-        return max(min(value, max_val), min_val)
-'''
 # Define print weights function
 def print_weights():
     global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
@@ -106,7 +106,22 @@ def print_odds():
             f"{my_dict[p]:<{name_width}} (#{p:<3}) {w:{weight_width}.2f} {o*100:{odds_width}.2f}%"
         )
 
-
+# Define table_populate function
+def table_populate():
+    global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
+    # Recalculate weights
+    weights = [exponential_function(x) for x in participants]
+    if clamp_bool:
+        weights = [clamp(w, clamp_low, clamp_high) for w in weights]
+    
+    # Recalculate odds
+    odds = [odds_function(x) for x in participants]
+    
+    table_data = []
+    for p, w, o in zip(participants, weights, odds):
+        table_data.append([my_dict[p], p, f"{w:.2f}", f"{o*100:.2f}%"])
+    
+    window['-TABLE-'].update(values=table_data)
 
 # Function to control slider logic in GUI
 def controlSlider(param_name, slider, text, label):
@@ -116,6 +131,7 @@ def controlSlider(param_name, slider, text, label):
     window[f'{text}'].update(f"{label} = {value}") # Update text display
     #print_weights()  # Recalculate and print weights
     print_odds()     # Recalculate and print odds
+    table_populate() # Update table
     return value
 
 # === GUI Layout ===
@@ -174,6 +190,21 @@ terminal_output_2 = [
     )]
 ]
 
+# Table area
+table_area = [
+    [sg.Table(
+        values=[],  # Will be populated later
+        headings=['Player', 'ID', 'Weight', 'Odds'],
+        auto_size_columns=True,
+        display_row_numbers=False,
+        justification='left',
+        key='-TABLE-',
+        num_rows=10,
+        enable_events=True,
+        tooltip='This is a table'
+    )]
+]
+
 # Player count pop up
 player_count = sg.popup_get_text("Enter number of players:", title="Player Count")
 
@@ -195,6 +226,7 @@ layout = [
         sg.Image(filename=image_file),
         sg.VSeparator(),
         #sg.Frame("Player odds", terminal_output_2), sg.VSeparator(), 
+        sg.Frame("Player odds", table_area), sg.VSeparator(),
         sg.Frame("Player weights", terminal_output), 
         sg.Button("Exit"),
     ],
@@ -224,6 +256,7 @@ window['bText'].update(f"B = {params['b']}")
 participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
 weights = [exponential_function(x) for x in participants]
+table_populate() # Initial population of table
 
 # Show weights at initialization
 #print_weights()
@@ -275,6 +308,7 @@ while True:
             window['clampLow'].update(disabled=True)
         #print_weights()
         print_odds()
+        table_populate()
     if event == "clampHigh":
         try:
             clamp_high = int(values['clampHigh'])
@@ -283,6 +317,7 @@ while True:
                 continue
             #print_weights()
             print_odds()
+            table_populate()
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
             continue
@@ -294,6 +329,7 @@ while True:
                 continue
             #print_weights()
             print_odds()
+            table_populate()
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
             continue
