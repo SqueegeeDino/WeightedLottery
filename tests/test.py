@@ -12,7 +12,7 @@ params = {
     "m": 1,
     "n": 1.5,
     "x_offset": 0,
-    "z": 5,
+    "z": 1,
     "b": 0
 }
 
@@ -23,8 +23,9 @@ clamp_bool = False
 clamp_high = 999999
 clamp_low = -999999
 
-# Main dictionary to hold player names and their assigned numbers
-my_dict = {}
+
+my_dict = {} # Main dictionary to hold player names and their assigned numbers
+lottery_participants = []  # To hold participants for each lottery run  
 
 # === Define functions ===
 # Define the exponential function
@@ -33,7 +34,25 @@ def exponential_function(x):
     n = params['n']
     z = params['z']
     b = params['b']
+    x = x + params['x_offset']
     return m * n ** (x + z) + b
+
+# Define odds function
+def odds_function(x):
+    m = params['m']
+    n = params['n']
+    z = params['z']
+    b = params['b']
+    x = x + params['x_offset']
+    return (m * n ** (x + z) + b) / (sum(weights))
+
+# Define print odds function
+def print_odds():
+    global participants, weights, my_dict
+    odds = [odds_function(x) for x in participants] # Calculate odds
+    window['-TERMINAL2-'].update('')
+    for p, o in zip(participants, odds):
+        window['-TERMINAL2-'].print(f"{my_dict[p]:<10}" + f"(#{p}): odds = {o*100:.2f}%")
 
 # Define the clamp function
 def clamp(value, min_val, max_val):
@@ -56,13 +75,14 @@ def controlSlider(param_name, slider, text, label):
     params[param_name] = value   # Dynamically assign value to param
     window[f'{text}'].update(f"{label} = {value}") # Update text display
     print_weights()  # Recalculate and print weights
+    print_odds()     # Recalculate and print odds
     return value
 
 # === GUI Layout ===
 # Header Image
 image_file = r"C:\Users\CormacC\Documents\GitHub\WeightedLottery\src\logo.png"  # Replace with your image file path
 
-# Column 1 layout
+# Column 1 layout. Buttons and clamp inputs
 column1 = [
     [sg.Text("Column 1")],
     [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"), 
@@ -74,11 +94,14 @@ column1 = [
 # Column 2 layout. Slider controls for m, n, x_offset, z, b
 column2 = [
     [sg.Text("Column 2")],
-    [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"N = {params['n']}", background_color='white', text_color='black', key="nText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"X = {params['x_offset']}", background_color='white', text_color='black', key="xText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='xSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"Z = {params['z']}", background_color='white', text_color='black', key="zText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='zSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"B = {params['b']}", background_color='white', text_color='black', key="bText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    # Uncomment the following line to enable m slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
+    # [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"N = {params['n']}", background_color='white', text_color='black', key="nText"), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    # Uncomment the following line to enable x_offset slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
+    # [sg.Text(f"X = {params['x_offset']}", background_color='white', text_color='black', key="xText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='xSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    # Uncomment the following line to enable z slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
+    # [sg.Text(f"Z = {params['z']}", background_color='white', text_color='black', key="zText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='zSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"B = {params['b']}", background_color='white', text_color='black', key="bText"), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
 ]
 
 # Plot area
@@ -143,15 +166,15 @@ layout = [
 # Create the window
 window = sg.Window("Two Columns with Terminal", layout, finalize=True)
 
-window['mSlider'].update(params['m'])
+#window['mSlider'].update(params['m'])
 window['nSlider'].update(params['n'])
-window['xSlider'].update(params['x_offset'])
-window['zSlider'].update(params['z'])
+#window['xSlider'].update(params['x_offset'])
+#window['zSlider'].update(params['z'])
 window['bSlider'].update(params['b'])
-window['mText'].update(f"M = {params['m']}")
+#window['mText'].update(f"M = {params['m']}")
 window['nText'].update(f"N = {params['n']}")
-window['xText'].update(f"X = {params['x_offset']}")
-window['zText'].update(f"Z = {params['z']}")
+#window['xText'].update(f"X = {params['x_offset']}")
+#window['zText'].update(f"Z = {params['z']}")
 window['bText'].update(f"B = {params['b']}")
 
 # === Lottery Logic ===
@@ -177,14 +200,14 @@ while True:
     if event == sg.WINDOW_CLOSED or event == "Exit":
         break
     # Sliders
-    if event == 'mSlider':
-        controlSlider('m', 'mSlider', 'mText', 'M')
+    #if event == 'mSlider':
+        #controlSlider('m', 'mSlider', 'mText', 'M')
     if event == 'nSlider':
         controlSlider('n', 'nSlider', 'nText', 'N')
-    if event == 'xSlider':
-        controlSlider('x_offset', 'xSlider', 'xText', 'X')
-    if event == 'zSlider':
-        controlSlider('z', 'zSlider', 'zText', 'Z')
+    #if event == 'xSlider':
+        #controlSlider('x_offset', 'xSlider', 'xText', 'X')
+    #if event == 'zSlider':
+        #controlSlider('z', 'zSlider', 'zText', 'Z')
     if event == 'bSlider':
         controlSlider('b', 'bSlider', 'bText', 'B')
     # Clamping
@@ -224,15 +247,15 @@ while True:
     # Defaults button
     if event == "buttonDefaults":
         params = params_default.copy()
-        window['mSlider'].update(params['m'])
+        #window['mSlider'].update(params['m'])
         window['nSlider'].update(params['n'])
-        window['xSlider'].update(params['x_offset'])
-        window['zSlider'].update(params['z'])
+        #window['xSlider'].update(params['x_offset'])
+        #window['zSlider'].update(params['z'])
         window['bSlider'].update(params['b'])
-        window['mText'].update(f"M = {params['m']}")
+        #window['mText'].update(f"M = {params['m']}")
         window['nText'].update(f"N = {params['n']}")
-        window['xText'].update(f"X = {params['x_offset']}")
-        window['zText'].update(f"Z = {params['z']}")
+        #window['xText'].update(f"X = {params['x_offset']}")
+        #window['zText'].update(f"Z = {params['z']}")
         window['bText'].update(f"B = {params['b']}")
         window['clampWeights'].update(False)
         clamp_bool = False
@@ -242,20 +265,22 @@ while True:
             window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
     # Run Lottery button
     if event == "buttonRun":
+        lottery_participants = participants.copy()  # Reset participants for new draw
+        winners = [] # Reset winners list
         for round_number in range(1, int(player_count + 1)):
             # Compute current weights for remaining participants
-            weights = [exponential_function(x) for x in participants]
+            weights = [exponential_function(x) for x in lottery_participants]
 
             # Pick the winner based on current weights
-            winner = random.choices(participants, weights=weights, k=1)[0]
+            winner = random.choices(lottery_participants, weights=weights, k=1)[0]
             winners.append(winner)
 
             # Announce winner
             print(f"\n🎉 Winner of Round {round_number}: "f"{my_dict[winner]} (#{winner})")
 
             # Remove winner from participant pool
-            index = participants.index(winner)
-            participants.pop(index)
+            index = lottery_participants.index(winner)
+            lottery_participants.pop(index)
 
 
 window.close()
