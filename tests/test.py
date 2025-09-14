@@ -42,7 +42,7 @@ def clamp(value, min_val, max_val):
 # Define print weights function
 def print_weights():
     global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
-    weights = [exponential_function(x) for x in participants]
+    weights = [exponential_function(x) for x in participants] # Calculate initial weights
     if clamp_bool:
         weights = [clamp(w, clamp_low, clamp_high) for w in weights]
     window['-TERMINAL-'].update('')
@@ -68,7 +68,7 @@ column1 = [
     [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"), 
      sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights', enable_events=True, tooltip="Enable weight clamping"),
      sg.Button("Run Lottery", key='buttonRun', tooltip="Run the lottery with current settings")],
-    [sg.Input(key='clampHigh', size=(10,1), disabled=True), sg.Text("Clamp High"), sg.Input(key='clampLow', size=(10,1), disabled=True), sg.Text("Clamp Low")],
+    [sg.Text("Clamp High"), sg.Input(key='clampHigh', size=(10,1), disabled=True, enable_events=True), sg.VSeparator(), sg.Text("Clamp Low"), sg.Input(key='clampLow', size=(10,1), disabled=True, enable_events=True),],
 ]
 
 # Column 2 layout. Slider controls for m, n, x_offset, z, b
@@ -199,6 +199,7 @@ while True:
             print_weights()
             window['clampHigh'].update(disabled=True)
             window['clampLow'].update(disabled=True)
+
     if event == "buttonDefaults":
         params = params_default.copy()
         window['mSlider'].update(params['m'])
@@ -211,13 +212,15 @@ while True:
         window['xText'].update(f"X = {params['x_offset']}")
         window['zText'].update(f"Z = {params['z']}")
         window['bText'].update(f"B = {params['b']}")
+        window['clampWeights'].update(False)
+        clamp_bool = False
         weights = [exponential_function(x) for x in participants]
         window['-TERMINAL-'].update('')
         for p, w in zip(participants, weights):
             window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
     if event == "clampHigh":
         try:
-            clamp_high = values['clampHigh']
+            clamp_high = int(values['clampHigh'])
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
@@ -227,7 +230,7 @@ while True:
             continue
     if event == "clampLow":
         try:
-            clamp_low = values['clampHigh']
+            clamp_low = int(values['clampLow'])
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
