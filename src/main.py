@@ -37,14 +37,27 @@ def exponential_function(x):
     x = x + params['x_offset']
     return m * n ** (x + z) + b
 
-# Define odds function
+# Define the odds function
 def odds_function(x):
     m = params['m']
     n = params['n']
     z = params['z']
     b = params['b']
     x = x + params['x_offset']
-    return (m * n ** (x + z) + b) / (sum(weights))
+    
+    # Calculate raw weight
+    weight = m * n ** (x + z) + b
+    
+    # Apply clamping if enabled
+    if clamp_bool:
+        weight = clamp(weight, clamp_low, clamp_high)
+    
+    # IMPORTANT: sum of weights also needs clamping applied
+    all_weights = [m * n ** (xi + z + params['x_offset']) + b for xi in participants]
+    if clamp_bool:
+        all_weights = [clamp(w, clamp_low, clamp_high) for w in all_weights]
+    
+    return weight / sum(all_weights)
 
 # Define the clamp function
 def clamp(value, min_val, max_val):
