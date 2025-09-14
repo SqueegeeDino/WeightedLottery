@@ -13,7 +13,7 @@ params = {
     "n": 1.5,
     "x_offset": 0,
     "z": 1,
-    "b": 0
+    "b": 5
 }
 
 params_default = params.copy()  # Store default parameters for reset
@@ -45,19 +45,21 @@ def odds_function(x):
     b = params['b']
     x = x + params['x_offset']
     return (m * n ** (x + z) + b) / (sum(weights))
-
+'''
 # Define print odds function
 def print_odds():
     global participants, weights, my_dict
     odds = [odds_function(x) for x in participants] # Calculate odds
     window['-TERMINAL2-'].update('')
     for p, o in zip(participants, odds):
-        window['-TERMINAL2-'].print(f"{my_dict[p]:<10}" + f"(#{p}): odds = {o*100:.2f}%")
-
+        window['-TERMINAL2-'].print(
+    f"{my_dict[p]:<10}(#{p:<3}): odds = {o*100:6.2f}%"
+)
+'''
 # Define the clamp function
 def clamp(value, min_val, max_val):
         return max(min(value, max_val), min_val)
-
+'''
 # Define print weights function
 def print_weights():
     global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
@@ -66,7 +68,45 @@ def print_weights():
         weights = [clamp(w, clamp_low, clamp_high) for w in weights]
     window['-TERMINAL-'].update('')
     for p, w in zip(participants, weights):
-        window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+        window['-TERMINAL-'].print(
+            f"{my_dict[p]:<10}(#{p:<3}): {w:8.2f}"
+    )
+'''
+
+# New combined print weights and odds function
+def print_odds():
+    global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
+    
+    # Recalculate weights
+    weights = [exponential_function(x) for x in participants]
+    if clamp_bool:
+        weights = [clamp(w, clamp_low, clamp_high) for w in weights]
+    
+    # Recalculate odds
+    odds = [odds_function(x) for x in participants]
+    
+    # Clear terminal
+    window['-TERMINAL-'].update('')
+    
+    # Fixed column widths
+    name_width = 20
+    id_width = 6
+    weight_width = 10
+    odds_width = 9
+    
+    # Print header
+    window['-TERMINAL-'].print(
+        f"{'Name':<{name_width}} {'ID':<{id_width}} {'Weight':>{weight_width}} {'Odds':>{odds_width}}"
+    )
+    window['-TERMINAL-'].print("-" * (name_width + id_width + weight_width + odds_width + 3))
+    
+    # Print rows
+    for p, w, o in zip(participants, weights, odds):
+        window['-TERMINAL-'].print(
+            f"{my_dict[p]:<{name_width}} (#{p:<3}) {w:{weight_width}.2f} {o*100:{odds_width}.2f}%"
+        )
+
+
 
 # Function to control slider logic in GUI
 def controlSlider(param_name, slider, text, label):
@@ -74,7 +114,7 @@ def controlSlider(param_name, slider, text, label):
     value = values[f'{slider}']  # Get value from GUI slider
     params[param_name] = value   # Dynamically assign value to param
     window[f'{text}'].update(f"{label} = {value}") # Update text display
-    print_weights()  # Recalculate and print weights
+    #print_weights()  # Recalculate and print weights
     print_odds()     # Recalculate and print odds
     return value
 
@@ -113,7 +153,7 @@ plotArea = [
 # Terminal output area
 terminal_output = [
     [sg.Multiline(
-        size=(45, 8), 
+        size=(50, 8), 
         disabled=True, 
         autoscroll=True, 
         key='-TERMINAL-', 
@@ -154,7 +194,9 @@ layout = [
     [
         sg.Image(filename=image_file),
         sg.VSeparator(),
-        sg.Frame("Player List", terminal_output_2), sg.VSeparator(), sg.Frame("Terminal Output", terminal_output), sg.Button("Exit"),
+        #sg.Frame("Player odds", terminal_output_2), sg.VSeparator(), 
+        sg.Frame("Player weights", terminal_output), 
+        sg.Button("Exit"),
     ],
     [
         [sg.Column(column1), sg.Column(column2),],
@@ -183,16 +225,15 @@ participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
 weights = [exponential_function(x) for x in participants]
 
-# Show weights before the draw
-for p, w in zip(participants, weights):
-    window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+# Show weights at initialization
+#print_weights()
 
-# Print player list to terminal
-window['-TERMINAL2-'].print(f"Participants:{participants}")
+# Show odds at initialization
+print_odds()
 
 # Print each player and their assigned number
-for number, player in my_dict.items():
-    window['-TERMINAL2-'].print(f"{number}: {player}")
+#for number, player in my_dict.items():
+    #window['-TERMINAL2-'].print(f"{number}: {player}")
 
 # === GUI Event Loop ===
 while True:
@@ -214,23 +255,34 @@ while True:
     if event == 'clampWeights':
         if values['clampWeights']:
             clamp_bool = True
-            print_weights()
             window['clampHigh'].update(disabled=False)
             window['clampLow'].update(disabled=False)
+            if values['clampHigh'] and values['clampLow']:
+                try:
+                    clamp_high = int(values['clampHigh'])
+                    clamp_low = int(values['clampLow'])
+                    if clamp_low >= clamp_high:
+                        window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
+                        continue
+                except ValueError:
+                    window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
+                    continue
         else:
             clamp_bool = False
             clamp_high = 999999
             clamp_low = -999999
-            print_weights()
             window['clampHigh'].update(disabled=True)
             window['clampLow'].update(disabled=True)
+        #print_weights()
+        print_odds()
     if event == "clampHigh":
         try:
             clamp_high = int(values['clampHigh'])
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
-            print_weights()
+            #print_weights()
+            print_odds()
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
             continue
@@ -240,7 +292,8 @@ while True:
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
-            print_weights()
+            #print_weights()
+            print_odds()
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
             continue
@@ -276,7 +329,7 @@ while True:
             winners.append(winner)
 
             # Announce winner
-            print(f"\n🎉 Winner of Round {round_number}: "f"{my_dict[winner]} (#{winner})")
+            sg.popup(f"Winner of Round {round_number}:\n "f"{my_dict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=2, button_justification="centered")
 
             # Remove winner from participant pool
             index = lottery_participants.index(winner)
