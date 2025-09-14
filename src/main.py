@@ -1,116 +1,339 @@
+# hello_world.py
+import FreeSimpleGUI as sg
 import random
 import time
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-# Text colors
-RED = '\033[31m'
-GREEN = '\033[32m'
-BLUE = '\033[34m'
-RESET = '\033[0m' # Resets all formatting
-
-# Background colors
-BG_YELLOW = '\033[43m'
-
-# === Global parameters for the exponential function (adjust as needed) ===
-m = 1
-n = 1.5
-x_offset = 0
-z = 5
-b = 0
-
-# === Map participant numbers to names ===
-name_map = {
-    1: "Cormac",
-    2: "Nick",
-    3: "Lindsay",
-    4: "Ryan",
-    5: "Jo",
-    6: "Rourke",
-    7: "Sean",
-    8: "Austin",
-    9: "Laura",
-    10: "Matt",
-    11: "Charlie",
-    12: "Tara"
+# === Global parameters ===
+# Global parameter dictionary
+params = {
+    "m": 1,
+    "n": 1.5,
+    "x_offset": 0,
+    "z": 1,
+    "b": 5
 }
 
-# === Define the exponential function ===
+params_default = params.copy()  # Store default parameters for reset
+
+# Clamping parameters
+clamp_bool = False
+clamp_high = 999999
+clamp_low = -999999
+
+
+my_dict = {} # Main dictionary to hold player names and their assigned numbers
+lottery_participants = []  # To hold participants for each lottery run  
+
+# === Define functions ===
+# Define the exponential function
 def exponential_function(x):
+    m = params['m']
+    n = params['n']
+    z = params['z']
+    b = params['b']
+    x = x + params['x_offset']
     return m * n ** (x + z) + b
 
-# === Define the clamp function ===
+# Define odds function
+def odds_function(x):
+    m = params['m']
+    n = params['n']
+    z = params['z']
+    b = params['b']
+    x = x + params['x_offset']
+    return (m * n ** (x + z) + b) / (sum(weights))
+'''
+# Define print odds function
+def print_odds():
+    global participants, weights, my_dict
+    odds = [odds_function(x) for x in participants] # Calculate odds
+    window['-TERMINAL2-'].update('')
+    for p, o in zip(participants, odds):
+        window['-TERMINAL2-'].print(
+    f"{my_dict[p]:<10}(#{p:<3}): odds = {o*100:6.2f}%"
+)
+'''
+# Define the clamp function
 def clamp(value, min_val, max_val):
         return max(min(value, max_val), min_val)
+'''
+# Define print weights function
+def print_weights():
+    global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
+    weights = [exponential_function(x) for x in participants] # Calculate initial weights
+    if clamp_bool:
+        weights = [clamp(w, clamp_low, clamp_high) for w in weights]
+    window['-TERMINAL-'].update('')
+    for p, w in zip(participants, weights):
+        window['-TERMINAL-'].print(
+            f"{my_dict[p]:<10}(#{p:<3}): {w:8.2f}"
+    )
+'''
 
-# === Initialize participants and compute initial weights ===
-participants = list(range(1, 13))  # Numbers 1 to 12
+# New combined print weights and odds function
+def print_odds():
+    global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
+    
+    # Recalculate weights
+    weights = [exponential_function(x) for x in participants]
+    if clamp_bool:
+        weights = [clamp(w, clamp_low, clamp_high) for w in weights]
+    
+    # Recalculate odds
+    odds = [odds_function(x) for x in participants]
+    
+    # Clear terminal
+    window['-TERMINAL-'].update('')
+    
+    # Fixed column widths
+    name_width = 20
+    id_width = 6
+    weight_width = 10
+    odds_width = 9
+    
+    # Print header
+    window['-TERMINAL-'].print(
+        f"{'Name':<{name_width}} {'ID':<{id_width}} {'Weight':>{weight_width}} {'Odds':>{odds_width}}"
+    )
+    window['-TERMINAL-'].print("-" * (name_width + id_width + weight_width + odds_width + 3))
+    
+    # Print rows
+    for p, w, o in zip(participants, weights, odds):
+        window['-TERMINAL-'].print(
+            f"{my_dict[p]:<{name_width}} (#{p:<3}) {w:{weight_width}.2f} {o*100:{odds_width}.2f}%"
+        )
+
+
+
+# Function to control slider logic in GUI
+def controlSlider(param_name, slider, text, label):
+    global params, weights, participants
+    value = values[f'{slider}']  # Get value from GUI slider
+    params[param_name] = value   # Dynamically assign value to param
+    window[f'{text}'].update(f"{label} = {value}") # Update text display
+    #print_weights()  # Recalculate and print weights
+    print_odds()     # Recalculate and print odds
+    return value
+
+# === GUI Layout ===
+# Header Image
+image_file = r"C:\Users\CormacC\Documents\GitHub\WeightedLottery\src\logo.png"  # Replace with your image file path
+
+# Column 1 layout. Buttons and clamp inputs
+column1 = [
+    [sg.Text("Column 1")],
+    [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"), 
+     sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights', enable_events=True, tooltip="Enable weight clamping"),
+     sg.Button("Run Lottery", key='buttonRun', tooltip="Run the lottery with current settings")],
+    [sg.Text("Clamp High"), sg.Input(key='clampHigh', size=(10,1), disabled=True, enable_events=True), sg.VSeparator(), sg.Text("Clamp Low"), sg.Input(key='clampLow', size=(10,1), disabled=True, enable_events=True),],
+]
+
+# Column 2 layout. Slider controls for m, n, x_offset, z, b
+column2 = [
+    [sg.Text("Column 2")],
+    # Uncomment the following line to enable m slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
+    # [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"N = {params['n']}", background_color='white', text_color='black', key="nText"), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    # Uncomment the following line to enable x_offset slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
+    # [sg.Text(f"X = {params['x_offset']}", background_color='white', text_color='black', key="xText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='xSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    # Uncomment the following line to enable z slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
+    # [sg.Text(f"Z = {params['z']}", background_color='white', text_color='black', key="zText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='zSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"B = {params['b']}", background_color='white', text_color='black', key="bText"), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
+]
+
+# Plot area
+plotArea = [
+    [sg.Text('My Plot')],
+    [sg.Canvas(key='-CANVAS-', size=(400, 200))], # Adjust size as needed
+]
+
+# Terminal output area
+terminal_output = [
+    [sg.Multiline(
+        size=(50, 8), 
+        disabled=True, 
+        autoscroll=True, 
+        key='-TERMINAL-', 
+        background_color='black', 
+        text_color='white'
+    )]
+]
+
+# Terminal output area 2
+terminal_output_2 = [
+    [sg.Multiline(
+        size=(30, 8), 
+        disabled=True, 
+        autoscroll=True, 
+        key='-TERMINAL2-', 
+        background_color='black', 
+        text_color='white'
+    )]
+]
+
+# Player count pop up
+player_count = sg.popup_get_text("Enter number of players:", title="Player Count")
+
+# Player names loop
+if player_count and player_count.isdigit():
+    player_count = int(player_count)
+    for i in range(player_count):
+        name = sg.popup_get_text(f"Enter name for player {i + 1}:", title="Player Name")
+        if name:
+            my_dict[name] = i + 1
+
+# Swap keys and values in dictionary, then set them back to my_dict
+swapped_dict = {v: k for k, v in my_dict.items()}
+my_dict = swapped_dict
+
+# Full layout: Image and terminal at top, then two colums, then terminal at bottom
+layout = [
+    [
+        sg.Image(filename=image_file),
+        sg.VSeparator(),
+        #sg.Frame("Player odds", terminal_output_2), sg.VSeparator(), 
+        sg.Frame("Player weights", terminal_output), 
+        sg.Button("Exit"),
+    ],
+    [
+        [sg.Column(column1), sg.Column(column2),],
+        sg.VSeparator(),
+        #sg.Frame("Plot Area", plotArea)
+    ]
+]
+
+# Create the window
+window = sg.Window("Two Columns with Terminal", layout, finalize=True)
+
+#window['mSlider'].update(params['m'])
+window['nSlider'].update(params['n'])
+#window['xSlider'].update(params['x_offset'])
+#window['zSlider'].update(params['z'])
+window['bSlider'].update(params['b'])
+#window['mText'].update(f"M = {params['m']}")
+window['nText'].update(f"N = {params['n']}")
+#window['xText'].update(f"X = {params['x_offset']}")
+#window['zText'].update(f"Z = {params['z']}")
+window['bText'].update(f"B = {params['b']}")
+
+# === Lottery Logic ===
+# Initialize participants and compute initial weights
+participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
 weights = [exponential_function(x) for x in participants]
 
-# Show weights before the draw
-print(BLUE + "Remaining contestants and their weights:" + RESET)
-for p, w in zip(participants, weights):
-    print(BLUE + f"{name_map[p]:<10}" + RESET + f"(#{p}): weight = {w:.2f}")
-''' === Uncomment to visualize initial weights ===
-# === Plot the weights at the start ===
-names = [name_map[p] for p in participants]
+# Show weights at initialization
+#print_weights()
 
-plt.figure(figsize=(10, 6))
-plt.bar(names, weights, color='skyblue')
-plt.xlabel("Participants")
-plt.ylabel("Exponential Weight")
-plt.title("Initial Weights of Participants Based on Exponential Function")
-plt.xticks(rotation=45)
-plt.tight_layout()
-plt.grid(axis='y', linestyle='--', alpha=0.7)
-plt.show()
-'''
+# Show odds at initialization
+print_odds()
 
-choice = input(BG_YELLOW + "\nWould you like to clamp the weights? (Y/N): ").strip().lower()
-if choice == 'y':
-    while True:
+# Print each player and their assigned number
+#for number, player in my_dict.items():
+    #window['-TERMINAL2-'].print(f"{number}: {player}")
+
+# === GUI Event Loop ===
+while True:
+    event, values = window.read()
+    if event == sg.WINDOW_CLOSED or event == "Exit":
+        break
+    # Sliders
+    #if event == 'mSlider':
+        #controlSlider('m', 'mSlider', 'mText', 'M')
+    if event == 'nSlider':
+        controlSlider('n', 'nSlider', 'nText', 'N')
+    #if event == 'xSlider':
+        #controlSlider('x_offset', 'xSlider', 'xText', 'X')
+    #if event == 'zSlider':
+        #controlSlider('z', 'zSlider', 'zText', 'Z')
+    if event == 'bSlider':
+        controlSlider('b', 'bSlider', 'bText', 'B')
+    # Clamping
+    if event == 'clampWeights':
+        if values['clampWeights']:
+            clamp_bool = True
+            window['clampHigh'].update(disabled=False)
+            window['clampLow'].update(disabled=False)
+            if values['clampHigh'] and values['clampLow']:
+                try:
+                    clamp_high = int(values['clampHigh'])
+                    clamp_low = int(values['clampLow'])
+                    if clamp_low >= clamp_high:
+                        window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
+                        continue
+                except ValueError:
+                    window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
+                    continue
+        else:
+            clamp_bool = False
+            clamp_high = 999999
+            clamp_low = -999999
+            window['clampHigh'].update(disabled=True)
+            window['clampLow'].update(disabled=True)
+        #print_weights()
+        print_odds()
+    if event == "clampHigh":
         try:
-            cl_high = int(input(BG_YELLOW + "Enter high clamp value: "))
-            cl_low = int(input(BG_YELLOW + "Enter low clamp value: " ))
-            if cl_low >= cl_high:
-                print(RED + "Low clamp value must be less than high clamp value. Please try again." + RESET)
+            clamp_high = int(values['clampHigh'])
+            if clamp_low >= clamp_high:
+                window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
-            break
+            #print_weights()
+            print_odds()
         except ValueError:
-            print(RED + "Invalid input. Please enter integer values." + RESET)
-    
-    # Apply clamping to weights
-    weights = [clamp(w, cl_low, cl_high) for w in weights]
-    
-    # Show clamped weights
-    print(RESET + GREEN + "\nClamped weights:" + RESET)
-    for p, w in zip(participants, weights):
-        print(BLUE + f"{name_map[p]:<10}" + RESET + f"(#{p}): weight = {w:.2f}")
-elif choice != 'n':
-    print(RED + "Invalid input. Proceeding without clamping." + RESET)
+            window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
+            continue
+    if event == "clampLow":
+        try:
+            clamp_low = int(values['clampLow'])
+            if clamp_low >= clamp_high:
+                window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
+                continue
+            #print_weights()
+            print_odds()
+        except ValueError:
+            window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
+            continue
+    # Defaults button
+    if event == "buttonDefaults":
+        params = params_default.copy()
+        #window['mSlider'].update(params['m'])
+        window['nSlider'].update(params['n'])
+        #window['xSlider'].update(params['x_offset'])
+        #window['zSlider'].update(params['z'])
+        window['bSlider'].update(params['b'])
+        #window['mText'].update(f"M = {params['m']}")
+        window['nText'].update(f"N = {params['n']}")
+        #window['xText'].update(f"X = {params['x_offset']}")
+        #window['zText'].update(f"Z = {params['z']}")
+        window['bText'].update(f"B = {params['b']}")
+        window['clampWeights'].update(False)
+        clamp_bool = False
+        weights = [exponential_function(x) for x in participants]
+        window['-TERMINAL-'].update('')
+        for p, w in zip(participants, weights):
+            window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+    # Run Lottery button
+    if event == "buttonRun":
+        lottery_participants = participants.copy()  # Reset participants for new draw
+        winners = [] # Reset winners list
+        for round_number in range(1, int(player_count + 1)):
+            # Compute current weights for remaining participants
+            weights = [exponential_function(x) for x in lottery_participants]
+
+            # Pick the winner based on current weights
+            winner = random.choices(lottery_participants, weights=weights, k=1)[0]
+            winners.append(winner)
+
+            # Announce winner
+            sg.popup(f"Winner of Round {round_number}:\n "f"{my_dict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=2, button_justification="centered")
+
+            # Remove winner from participant pool
+            index = lottery_participants.index(winner)
+            lottery_participants.pop(index)
 
 
-time.sleep(1)  # Pause before starting the draw
-
-# === Run 12 rounds ===
-for round_number in range(1, 13):
-    # Compute current weights for remaining participants
-    weights = [exponential_function(x) for x in participants]
-
-    # Pick the winner based on current weights
-    winner = random.choices(participants, weights=weights, k=1)[0]
-    winners.append(winner)
-
-    # Announce winner
-    print(RESET + f"\n🎉 Winner of Round {round_number}: " + BLUE + f"{name_map[winner]} (#{winner})" + RESET)
-
-    # Remove winner from participant pool
-    index = participants.index(winner)
-    participants.pop(index)
-
-    time.sleep(1)  # Pause for dramatic effect
-
-# === Final summary ===
-print(GREEN + "\n=== Final Winner Order ===" + RESET)
-for i, winner in enumerate(winners, start=1):
-    print(RESET + f"{i}. " + BLUE + f"{name_map[winner]} (#{winner})" + RESET)
+window.close()
