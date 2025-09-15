@@ -21,7 +21,7 @@ params_default = params.copy()  # Store default parameters for reset
 # Clamping parameters
 clamp_bool = False
 clamp_high = 999999
-clamp_low = -999999
+clamp_low = 1
 
 
 my_dict = {} # Main dictionary to hold player names and their assigned numbers
@@ -46,18 +46,18 @@ def odds_function(x):
     x = x + params['x_offset']
     
     # Calculate raw weight
-    weight = m * n ** (x + z) + b
+    weights = m * n ** (x + z) + b
     
-    # Apply clamping if enabled
-    if clamp_bool:
-        weight = clamp(weight, clamp_low, clamp_high)
+    # Apply clamping
+    weights = clamp(weights, clamp_low, clamp_high)
     
     # IMPORTANT: sum of weights also needs clamping applied
     all_weights = [m * n ** (xi + z + params['x_offset']) + b for xi in participants]
-    if clamp_bool:
-        all_weights = [clamp(w, clamp_low, clamp_high) for w in all_weights]
+    all_weights = [clamp(w, clamp_low, clamp_high) for w in all_weights]
     
-    return weight / sum(all_weights)
+    odds = weights / sum(all_weights)
+
+    return odds, weights
 
 # Define the clamp function
 def clamp(value, min_val, max_val):
@@ -90,14 +90,10 @@ def print_weights():
 def print_odds():
     global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
     
-    # Recalculate weights
-    weights = [exponential_function(x) for x in participants]
-    if clamp_bool:
-        weights = [clamp(w, clamp_low, clamp_high) for w in weights]
-    
-    # Recalculate odds
-    odds = [odds_function(x) for x in participants]
-    
+    # Get odds and weights
+    odds = [odds_function(x)[0] for x in participants] # Calculate odds
+    weights = [odds_function(x)[1] for x in participants] # Get weights from odds function
+
     # Clear terminal
     window['-TERMINAL-'].update('')
     
@@ -122,13 +118,10 @@ def print_odds():
 # Define table_populate function
 def table_populate():
     global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
-    # Recalculate weights
-    weights = [exponential_function(x) for x in participants]
-    if clamp_bool:
-        weights = [clamp(w, clamp_low, clamp_high) for w in weights]
-    
-    # Recalculate odds
-    odds = [odds_function(x) for x in participants]
+
+    # Get odds and weights
+    odds = [odds_function(x)[0] for x in participants] # Calculate odds
+    weights = [odds_function(x)[1] for x in participants] # Get weights from odds function
     
     table_data = []
     for p, w, o in zip(participants, weights, odds):
@@ -142,7 +135,6 @@ def controlSlider(param_name, slider, text, label):
     value = values[f'{slider}']  # Get value from GUI slider
     params[param_name] = value   # Dynamically assign value to param
     window[f'{text}'].update(f"{label} = {value}") # Update text display
-    #print_weights()  # Recalculate and print weights
     print_odds()     # Recalculate and print odds
     table_populate() # Update table
     return value
@@ -268,18 +260,8 @@ window['bText'].update(f"B = {params['b']}")
 # Initialize participants and compute initial weights
 participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
-weights = [exponential_function(x) for x in participants]
+print_odds() # Intitial printing of odds and weights
 table_populate() # Initial population of table
-
-# Show weights at initialization
-#print_weights()
-
-# Show odds at initialization
-print_odds()
-
-# Print each player and their assigned number
-#for number, player in my_dict.items():
-    #window['-TERMINAL2-'].print(f"{number}: {player}")
 
 # === GUI Event Loop ===
 while True:
@@ -319,7 +301,6 @@ while True:
             clamp_low = -999999
             window['clampHigh'].update(disabled=True)
             window['clampLow'].update(disabled=True)
-        #print_weights()
         print_odds()
         table_populate()
     if event == "clampHigh":
@@ -328,7 +309,6 @@ while True:
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
-            #print_weights()
             print_odds()
             table_populate()
         except ValueError:
@@ -340,7 +320,6 @@ while True:
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
-            #print_weights()
             print_odds()
             table_populate()
         except ValueError:
@@ -361,7 +340,11 @@ while True:
         window['bText'].update(f"B = {params['b']}")
         window['clampWeights'].update(False)
         clamp_bool = False
-        weights = [exponential_function(x) for x in participants]
+        clamp_high = 999999
+        clamp_low = 1
+        # Get odds and weights
+        odds = [odds_function(x)[0] for x in participants] # Calculate odds
+        weights = [odds_function(x)[1] for x in participants] # Get weights from odds function
         window['-TERMINAL-'].update('')
         for p, w in zip(participants, weights):
             window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
@@ -371,7 +354,9 @@ while True:
         winners = [] # Reset winners list
         for round_number in range(1, int(player_count + 1)):
             # Compute current weights for remaining participants
-            weights = [exponential_function(x) for x in lottery_participants]
+            # Get odds and weights
+            odds = [odds_function(x)[0] for x in lottery_participants] # Calculate odds
+            weights = [odds_function(x)[1] for x in lottery_participants] # Get weights from odds function
 
             # Pick the winner based on current weights
             winner = random.choices(lottery_participants, weights=weights, k=1)[0]
