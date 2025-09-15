@@ -320,6 +320,11 @@ while True:
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
+            if clamp_low < 1:
+                window['-TERMINAL-'].print("Low clamp cannot be less than 1. Please try a higher value.")
+                clamp_low = 1
+                window['clampLow'].update("")
+                continue
             print_odds()
             table_populate()
         except ValueError:
