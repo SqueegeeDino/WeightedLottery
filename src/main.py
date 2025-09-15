@@ -137,7 +137,7 @@ def controlSlider(param_name, slider, text, label):
     value = values[f'{slider}']  # Get value from GUI slider
     params[param_name] = value   # Dynamically assign value to param
     window[f'{text}'].update(f"{label} = {value}") # Update text display
-    print_odds()     # Recalculate and print odds
+    #print_odds()     # Recalculate and print odds
     table_populate() # Update table
     return value
 
@@ -262,7 +262,7 @@ window['bText'].update(f"B = {params['b']}")
 # Initialize participants and compute initial weights
 participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
-print_odds() # Intitial printing of odds and weights
+#print_odds() # Intitial printing of odds and weights
 table_populate() # Initial population of table
 
 # === GUI Event Loop ===
@@ -310,7 +310,7 @@ while True:
             clamp_low = -999999
             window['clampHigh'].update(disabled=True)
             window['clampLow'].update(disabled=True)
-        print_odds()
+        #print_odds()
         table_populate()
     if event == "clampHigh":
         try:
@@ -324,7 +324,7 @@ while True:
                 window['clampHigh'].update("")
                 continue    
             user_clampHigh = clamp_high
-            print_odds()
+            #print_odds()
             table_populate()
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
@@ -343,7 +343,7 @@ while True:
                 window['clampLow'].update("")
                 continue
             user_clampLow = clamp_low
-            print_odds()
+            #print_odds()
             table_populate()
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
@@ -375,6 +375,8 @@ while True:
     if event == "buttonRun":
         lottery_participants = participants.copy()  # Reset participants for new draw
         winners = [] # Reset winners list
+        window['-TERMINAL-'].update("")
+        window['-TERMINAL-'].print(f"Winners:\n")
         for round_number in range(1, int(player_count + 1)):
             # Compute current weights for remaining participants
             # Get odds and weights
@@ -387,10 +389,12 @@ while True:
 
             # Announce winner
             sg.popup(f"Winner of Round {round_number}:\n "f"{my_dict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=2, button_justification="centered")
+            window['-TERMINAL-'].print(f"{round_number}: {my_dict[winner]}")
 
             # Remove winner from participant pool
             index = lottery_participants.index(winner)
             lottery_participants.pop(index)
+
 
 
 window.close()
