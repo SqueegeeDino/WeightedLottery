@@ -6,6 +6,9 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 myList = []
+myDict = {}
+
+myDict.items
 
 layout = [
     [
@@ -25,16 +28,16 @@ while True:
     if event == sg.WINDOW_CLOSED or event == "Exit": # Exit window event
         break
     if event == "Print": # Print button
-        print("Printing myList:")
-        print(myList)
+        print("Printing myDict:")
+        print(myDict)
     if event == "Add": # Add button
         try:
             if values['input1']:
-                try:
-                    myList.index(values['input1']) # Search the list for whatever is entered in 'input1'
-                    print("Duplicate name found")
-                except ValueError: # Only append if no duplicates
-                    myList.append(values['input1'])
+                name = values['input1']
+                if myDict.get(name):
+                    print(f"Player {name} already exists")
+                else: # Only append if no duplicates
+                    myDict[name] = len(myDict) +1
                     window["input1"].update("")
             else: # Prevent adding blanks
                 print("Cannot add blank player")
@@ -42,12 +45,13 @@ while True:
             print("Please enter valid values")
     if event == "Remove": # Remove button
         try:
-            if values['input2']:
+            if values['input2']:   
+                name = values['input2']   
                 try:
-                    myList.remove(values['input2'])
+                    myDict.pop(name)
                     window['input2'].update("")
                 except ValueError: # Catch errors if trying to remove a name that doesn't exist
-                    print(f"{values['input2']} not found in list.")
+                    print(f"{name} not found in list.")
             else: # Prevent removing blanks
                 print("No input value found")
         except ValueError: # Catch any other errors
