@@ -22,6 +22,8 @@ params_default = params.copy()  # Store default parameters for reset
 clamp_bool = False
 clamp_high = 999999
 clamp_low = 1
+user_clampHigh = 0
+user_clampLow = 0
 
 
 my_dict = {} # Main dictionary to hold player names and their assigned numbers
@@ -281,21 +283,28 @@ while True:
         controlSlider('b', 'bSlider', 'bText', 'B')
     # Clamping
     if event == 'clampWeights':
-        if values['clampWeights']:
+        if values['clampWeights']: # Trigger when checking clamps to True
             clamp_bool = True
             window['clampHigh'].update(disabled=False)
             window['clampLow'].update(disabled=False)
-            if values['clampHigh'] and values['clampLow']:
+            if values['clampHigh']:
                 try:
                     clamp_high = int(values['clampHigh'])
+                    if clamp_low >= clamp_high:
+                        window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
+                        continue
+                except ValueError:
+                    window['-TERMINAL-'].print("High clamp invalid input. Please enter integer values.")
+                    continue
+            if values['clampLow']:
+                try:
                     clamp_low = int(values['clampLow'])
                     if clamp_low >= clamp_high:
                         window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                         continue
                 except ValueError:
-                    window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
-                    continue
-        else:
+                    window['-TERMINAL-'].print("Low clamp invalid input. Please enter integer values.")
+        else: # Trigger when checking clamps to False
             clamp_bool = False
             clamp_high = 999999
             clamp_low = -999999
@@ -309,6 +318,12 @@ while True:
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
                 continue
+            if clamp_high < 1:
+                window['-TERMINAL-'].print("High clamp cannot be less than 1. Please try a higher value.")
+                clamp_low = 1
+                window['clampHigh'].update("")
+                continue    
+            user_clampHigh = clamp_high
             print_odds()
             table_populate()
         except ValueError:
@@ -319,12 +334,15 @@ while True:
             clamp_low = int(values['clampLow'])
             if clamp_low >= clamp_high:
                 window['-TERMINAL-'].print("Low clamp value must be less than high clamp value. Please try again.")
+                clamp_low = 1
+                window['clampLow'].update("")
                 continue
             if clamp_low < 1:
                 window['-TERMINAL-'].print("Low clamp cannot be less than 1. Please try a higher value.")
                 clamp_low = 1
                 window['clampLow'].update("")
                 continue
+            user_clampLow = clamp_low
             print_odds()
             table_populate()
         except ValueError:
