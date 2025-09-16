@@ -37,19 +37,19 @@ def add_inputs(x):
             window.extend_layout(window['-dCOL-'], [new_input_row])
             rowCount += 1
             trueRowCount += 1
+            window["-dCOL-"].contents_changed() # Update scroll region
         else:
             rowCount += 1
             window[f"-LABEL_{i}-"].update(visible=True)
             window[f'-DYNAMIC_INPUT_{i}-'].update(visible=True)
-        window["-dCOL-"].contents_changed() # Update scroll region
+            window["-dCOL-"].contents_changed() # Update scroll region
 
+
+# Delete x number of input fields
 def delete_inputs(x):
     global rowCount, trueRowCount
     rc = rowCount
     if rc > 0:
-        print("Try to delete")
-        print(f"RC = {rc}")
-        print(f"Range: {rc - x + 1} to {rc -1}")
         for i in range(rc - x + 1, rc -1, -1):
                 window[f"-LABEL_{i}-"].update(visible=False)
                 window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
@@ -63,7 +63,8 @@ def print_inputs():
 column0 = [
         [sg.Text("Column 0")],
         [sg.Button("Exit"), sg.Button("Print")], 
-        [sg.Button("Add Input"), sg.Button("Remove Input")],
+        [sg.Button("Add Inputs"), sg.Input(key='input_add', size=(10,1), default_text="1")],
+        [sg.Button("Remove Inputs"), sg.Input(key='input_remove', size=(10,1), default_text="1")],
         [sg.Button("Add", bind_return_key=True), sg.Input(key='input1', size=(10,1))],
         [sg.Button("Remove"), sg.Input(key='input2', size=(10,1))],
         [sg.Button("Search"), sg.Input(key='input3', size=(10,1))],
@@ -136,7 +137,11 @@ while True:
                     print(values[f'-DYNAMIC_INPUT_{searchIndex}-'])
             except ValueError:
                 print("Please input a valid integer")
-    if event == "Add Input":
-        add_inputs(1)
-    if event == "Remove Input":
-        delete_inputs(1)
+    if event == "Add Inputs":
+        print("Try adding inputs")
+        print(f"Count to add: {int(values['input_add'])}")
+        add_inputs(int(values['input_add']))
+    if event == "Remove Inputs":
+        print("Try removing inputs")
+        print(f"Count to remove: {int(values['input_remove'])}")
+        delete_inputs(int(values['input_remove']))
