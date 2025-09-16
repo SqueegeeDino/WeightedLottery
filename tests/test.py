@@ -50,7 +50,7 @@ def delete_inputs(x):
     global rowCount, trueRowCount
     rc = rowCount
     if rc > 0:
-        for i in range(rc - x + 1, rc -1, -1):
+        for i in range(rc, rc - x, -1):
                 window[f"-LABEL_{i}-"].update(visible=False)
                 window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
                 rowCount -= 1
@@ -138,8 +138,6 @@ while True:
             except ValueError:
                 print("Please input a valid integer")
     if event == "Add Inputs":
-        print("Try adding inputs")
-        print(f"Count to add: {int(values['input_add'])}")
         add_inputs(int(values['input_add']))
     if event == "Remove Inputs":
         print("Try removing inputs")
