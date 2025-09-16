@@ -39,11 +39,13 @@ def add_inputs(x):
             rowCount += 1
             window[f"-LABEL_{i}-"].update(visible=True)
             window[f'-DYNAMIC_INPUT_{i}-'].update(visible=True)
+        window["-dCOL-"].contents_changed() # Update scroll region
 
 def delete_inputs():
     for i in range(1, rowCount + 1):
         window[f"-LABEL_{i}-"].update(visible=False)
         window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
+    window["-dCOL-"].contents_changed() # Update scroll region
 
 def print_inputs():
     for i in range(1, rowCount + 1):
@@ -57,23 +59,33 @@ column0 = [
         [sg.Button("Remove"), sg.Input(key='input2', size=(10,1))],
         [sg.Button("Search"), sg.Input(key='input3', size=(10,1))],
 ]
-
+'''
 column1 = [
     [sg.Column(
-        [[]],              # start with empty row list
+        [],              # start with empty row list
         key='-dCOL-',
         vertical_scroll_only=True,
         size=(200, 200),   # give it a fixed size if you want scroll
-        expand_x=True,
         expand_y=True,
         justification='left',   # align horizontally
         element_justification='left',  # align inside rows
-        scrollable=True
+        scrollable=True,
+        vertical_alignment="t",
     )]
 ]
-
+'''
 layout = [
-    [sg.Column(column0, key='-COL0-'), sg.VSeperator(), sg.Column(column1, key='-COL1-')],
+    [sg.Column(column0, key='-COL0-', vertical_alignment="t"), sg.VSeperator(), sg.Column(
+        [],              # start with empty row list
+        key='-dCOL-',
+        vertical_scroll_only=True,
+        size=(200, 200),   # give it a fixed size if you want scroll
+        expand_y=True,
+        justification='left',   # align horizontally
+        element_justification='left',  # align inside rows
+        scrollable=True,
+        vertical_alignment="t",
+    )],
 ]
 
 window = sg.Window("MainWindow", layout, finalize=True, resizable=True)
@@ -127,12 +139,4 @@ while True:
     if event == "Add Input":
         add_inputs(1)
     if event == "Remove Input":
-        if rowCount > 0:
-            if rowCount == trueRowCount:
-                window[f'-DYNAMIC_INPUT_{rowCount}-'].update(visible=False)
-                window[f"-LABEL_{rowCount}-"].update(visible=False)
-                rowCount -= 1  
-            elif rowCount != trueRowCount:
-                window[f'-DYNAMIC_INPUT_{rowCount}-'].update(visible=False)
-                window[f"-LABEL_{rowCount}-"].update(visible=False)
-                rowCount -= 1
+        delete_inputs()
