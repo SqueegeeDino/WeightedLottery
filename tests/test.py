@@ -19,6 +19,11 @@ testDict = {}
 myDict.items
 
 # === Functions for Dynamic Input Rows ===
+
+# Define the clamp function
+def clamp(value, min_val, max_val):
+        return max(min(value, max_val), min_val)
+
 # Clear all input fields
 def clear_inputs():
     for i in range(1, trueRowCount + 1):
@@ -50,10 +55,11 @@ def delete_inputs(x):
     global rowCount, trueRowCount
     rc = rowCount
     if rc > 0:
-        for i in range(rc, rc - x, -1):
-                window[f"-LABEL_{i}-"].update(visible=False)
-                window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
-                rowCount -= 1
+        for i in range(rc, clamp(rc - x, 0, 100), -1):
+                if window[f'-DYNAMIC_INPUT_{i}-']:
+                    window[f"-LABEL_{i}-"].update(visible=False)
+                    window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
+                    rowCount -= 1
         window["-dCOL-"].contents_changed() # Update scroll region
 
 def print_inputs():
