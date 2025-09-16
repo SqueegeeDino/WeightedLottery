@@ -8,9 +8,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 myList = []
 myDict = {}
 cloneDict = {}
+
 rowCount = 0
-hiddenCount = 0
+
 trueRowCount = 0
+
 inputList = []
 testDict = {}
 
@@ -41,11 +43,18 @@ def add_inputs(x):
             window[f'-DYNAMIC_INPUT_{i}-'].update(visible=True)
         window["-dCOL-"].contents_changed() # Update scroll region
 
-def delete_inputs():
-    for i in range(1, rowCount + 1):
-        window[f"-LABEL_{i}-"].update(visible=False)
-        window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
-    window["-dCOL-"].contents_changed() # Update scroll region
+def delete_inputs(x):
+    global rowCount, trueRowCount
+    rc = rowCount
+    if rc > 0:
+        print("Try to delete")
+        print(f"RC = {rc}")
+        print(f"Range: {rc - x + 1} to {rc -1}")
+        for i in range(rc - x + 1, rc -1, -1):
+                window[f"-LABEL_{i}-"].update(visible=False)
+                window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
+                rowCount -= 1
+        window["-dCOL-"].contents_changed() # Update scroll region
 
 def print_inputs():
     for i in range(1, rowCount + 1):
@@ -61,13 +70,14 @@ column0 = [
 ]
 
 column1 = [
+    [sg.Text("Dynamic Input Rows")],
     [sg.Column(
         [],              # start with empty row list
         key='-dCOL-',
         vertical_scroll_only=True,
         size=(200, 200),   # give it a fixed size if you want scroll
         expand_y=True,
-        justification='left',   # align horizontally
+        justification='right',   # align horizontally
         element_justification='left',  # align inside rows
         scrollable=True,
         vertical_alignment="t",
@@ -129,12 +139,4 @@ while True:
     if event == "Add Input":
         add_inputs(1)
     if event == "Remove Input":
-        if rowCount > 0:
-            if rowCount == trueRowCount:
-                window[f'-DYNAMIC_INPUT_{rowCount}-'].update(visible=False)
-                window[f"-LABEL_{rowCount}-"].update(visible=False)
-                rowCount -= 1  
-            elif rowCount != trueRowCount:
-                window[f'-DYNAMIC_INPUT_{rowCount}-'].update(visible=False)
-                window[f"-LABEL_{rowCount}-"].update(visible=False)
-                rowCount -= 1
+        delete_inputs(1)
