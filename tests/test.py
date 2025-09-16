@@ -71,6 +71,7 @@ column0 = [
         [sg.Button("Exit"), sg.Button("Print")], 
         [sg.Button("Add Inputs"), sg.Input(key='input_add', size=(10,1), default_text="1")],
         [sg.Button("Remove Inputs"), sg.Input(key='input_remove', size=(10,1), default_text="1")],
+        [sg.Button("Clear Inputs", tooltip="Reset input fields to default values"), sg.Button("Print Inputs")],
         [sg.Button("Add", bind_return_key=True), sg.Input(key='input1', size=(10,1))],
         [sg.Button("Remove"), sg.Input(key='input2', size=(10,1))],
         [sg.Button("Search"), sg.Input(key='input3', size=(10,1))],
@@ -82,7 +83,7 @@ column1 = [
         [],              # start with empty row list
         key='-dCOL-',
         vertical_scroll_only=True,
-        size=(200, 200),   # give it a fixed size if you want scroll
+        size=(200, 300),   # give it a fixed size if you want scroll
         expand_y=True,
         justification='right',   # align horizontally
         element_justification='left',  # align inside rows
@@ -146,6 +147,8 @@ while True:
     if event == "Add Inputs":
         add_inputs(int(values['input_add']))
     if event == "Remove Inputs":
-        print("Try removing inputs")
-        print(f"Count to remove: {int(values['input_remove'])}")
         delete_inputs(int(values['input_remove']))
+    if event == "Clear Inputs":
+        clear_inputs()
+    if event == "Print Inputs":
+        print_inputs()
