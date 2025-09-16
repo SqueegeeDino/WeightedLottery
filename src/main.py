@@ -5,6 +5,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import os
 
 # === Global parameters ===
 # Global parameter dictionary
@@ -143,7 +144,7 @@ def controlSlider(param_name, slider, text, label):
 
 # === GUI Layout ===
 # Header Image
-image_file = r"C:\Users\CormacC\Documents\GitHub\WeightedLottery\src\logo.png"  # Replace with your image file path
+image_file = os.path.abspath("./src/logo.png")  # Replace with your image file path
 
 # Column 1 layout. Buttons and clamp inputs
 column1 = [
