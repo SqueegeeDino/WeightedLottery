@@ -395,6 +395,4 @@ while True:
             index = lottery_participants.index(winner)
             lottery_participants.pop(index)
 
-
-
 window.close()
