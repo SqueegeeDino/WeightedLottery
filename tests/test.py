@@ -92,8 +92,16 @@ column1 = [
     )]
 ]
 
-layout = [
+tab_layout1 = [
     [sg.Column(column0, key='-COL0-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column1, key='-COL1-', vertical_alignment="t")],
+]
+
+tab_layout2 = [
+    [sg.Text("Tab 2")],
+]
+
+layout = [
+    [sg.TabGroup([[sg.Tab('Main', tab_layout1), sg.Tab('Tab 2', tab_layout2)]], key='-TABGROUP-', expand_x=True, expand_y=True)],
 ]
 
 window = sg.Window("MainWindow", layout, finalize=True, resizable=True)
