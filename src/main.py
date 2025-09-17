@@ -228,8 +228,8 @@ if player_count and player_count.isdigit():
 swapped_dict = {v: k for k, v in my_dict.items()}
 my_dict = swapped_dict
 
-# Full layout: Image and terminal at top, then two colums, then terminal at bottom
-layout = [
+# Tabs
+tab_layout_1 = [
     [
         sg.Image(filename=image_file),
         sg.VSeparator(),
@@ -242,7 +242,16 @@ layout = [
         [sg.Column(column1), sg.Column(column2),],
         sg.VSeparator(),
         #sg.Frame("Plot Area", plotArea)
-    ]
+    ],
+]
+
+tab_layout_2 = [
+    [sg.Text("Tab 2")],
+]
+
+# Full layout: Image and terminal at top, then two colums, then terminal at bottom
+layout = [
+    [sg.TabGroup([[sg.Tab('Main', tab_layout_1), sg.Tab('Tab 2', tab_layout_2)]], key='-TABGROUP-', expand_x=True, expand_y=True)],
 ]
 
 # Create the window
