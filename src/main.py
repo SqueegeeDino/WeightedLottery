@@ -8,7 +8,11 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import os
 
 # === Global parameters ===
-# Global parameter dictionary
+# General variables
+rowCount = 0
+trueRowCount = 0
+
+# Exponential function parameters
 params = {
     "m": 1,
     "n": 1.5,
@@ -168,6 +172,32 @@ column2 = [
     [sg.Text(f"B = {params['b']}", background_color='white', text_color='black', key="bText"), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
 ]
 
+column3 = [
+        [sg.Text("Column 0")],
+        [sg.Button("Exit"), sg.Button("Print")], 
+        [sg.Button("Add Inputs"), sg.Input(key='input_add', size=(10,1), default_text="1")],
+        [sg.Button("Remove Inputs"), sg.Input(key='input_remove', size=(10,1), default_text="1")],
+        [sg.Button("Clear Inputs", tooltip="Reset input fields to default values"), sg.Button("Print Inputs")],
+        [sg.Button("Add", bind_return_key=True), sg.Input(key='input1', size=(10,1))],
+        [sg.Button("Remove"), sg.Input(key='input2', size=(10,1))],
+        [sg.Button("Search"), sg.Input(key='input3', size=(10,1))],
+]
+
+column4 = [
+    [sg.Text("Dynamic Input Rows")],
+    [sg.Column(
+        [],              # start with empty row list
+        key='-dCOL-',
+        vertical_scroll_only=True,
+        size=(200, 300),   # give it a fixed size if you want scroll
+        expand_y=True,
+        justification='right',   # align horizontally
+        element_justification='left',  # align inside rows
+        scrollable=True,
+        vertical_alignment="t",
+    )]
+]
+
 # Plot area
 plotArea = [
     [sg.Text('My Plot')],
@@ -246,7 +276,7 @@ tab_layout_1 = [
 ]
 
 tab_layout_2 = [
-    [sg.Text("Tab 2")],
+    [sg.Text("Tab 2"), sg.Column(column3, key='-COL3-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column4, key='-COL4-', vertical_alignment="t")],
 ]
 
 # Full layout: Image and terminal at top, then two colums, then terminal at bottom
