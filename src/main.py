@@ -239,7 +239,7 @@ tab_layout_1 = [
         sg.Button("Exit"),
     ],
     [
-        [sg.Column(column1), sg.Column(column2),],
+        sg.Column(column1), sg.Column(column2),
         sg.VSeparator(),
         #sg.Frame("Plot Area", plotArea)
     ],
