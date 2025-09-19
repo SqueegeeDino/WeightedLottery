@@ -264,15 +264,24 @@ table_area = [
         display_row_numbers=False,
         justification='left',
         key='-TABLE-',
-        num_rows=10,
+        num_rows=16,
         enable_events=True,
-        tooltip='This is a table'
+        expand_x=True,
+        expand_y=True,
+        tooltip='Active players and their information'
     )]
 ]
 
 # Player count pop up
-player_count = sg.popup_get_text("Enter number of players:", title="Player Count")
+while True:
+    player_count = sg.popup_get_text("Enter number of players:", title="Player Count")
+    if player_count and player_count.isdigit():
+        player_count = int(player_count)
+        break
+    else:
+        sg.popup("Please enter a valid player count (0 is a valid count)")
 
+'''
 # Player names loop
 if player_count and player_count.isdigit():
     player_count = int(player_count)
@@ -284,13 +293,14 @@ if player_count and player_count.isdigit():
 # Swap keys and values in dictionary, then set them back to myDict
 swapped_dict = {v: k for k, v in myDict.items()}
 myDict = swapped_dict
+'''
 
 # Tabs
 tab_layout_1 = [
     [
         sg.Image(filename=image_file),
         sg.VSeparator(),
-        sg.Frame("Player odds", table_area), sg.VSeparator(),
+        sg.Frame("Player odds", table_area, size=(300,300)), sg.VSeparator(),
         sg.Frame("Player weights", terminal_output), 
         sg.Button("Exit"),
     ],
@@ -302,7 +312,7 @@ tab_layout_1 = [
 ]
 
 tab_layout_2 = [
-    [sg.Text("Tab 2"), sg.Column(column3, key='-COL3-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column4, key='-COL4-', vertical_alignment="t")],
+    [sg.Text("Player List"), sg.Column(column3, key='-COL3-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column4, key='-COL4-', vertical_alignment="t")],
 ]
 
 # Full layout: Image and terminal at top, then two colums, then terminal at bottom
