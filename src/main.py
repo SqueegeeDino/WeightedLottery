@@ -33,6 +33,7 @@ user_clampLow = 0
 
 myDict = {} # Main dictionary to hold player names and their assigned numbers
 lottery_participants = []  # To hold participants for each lottery run  
+participants = []
 
 # === Define functions === 
 # Define the exponential function
@@ -129,11 +130,11 @@ def clear_inputs():
 
 # Add x number of input fields
 def add_inputs(x):
-    global rowCount, trueRowCount
+    global rowCount, trueRowCount, player_count, participants
     rc = rowCount
     trc = trueRowCount
     for i in range(rc + 1, rc + x + 1):
-        if i > trc:
+        if i > trc: # Check to see if the row number has been added before, but hidden. If not, add a row from scratch
             new_input_row = [
                 sg.pin(sg.Text(f"{i}", key=f"-LABEL_{i}-", justification="left", p=(5,5))),
                 sg.pin(sg.Input(key=f'-DYNAMIC_INPUT_{i}-', default_text=f"Player {i}"))]
@@ -141,16 +142,18 @@ def add_inputs(x):
             rowCount += 1
             trueRowCount += 1
             window["-dCOL-"].contents_changed() # Update scroll region
-        else:
+        else: # Reveal a row if that number row has been added from scratch before, but hidden
             rowCount += 1
             window[f"-LABEL_{i}-"].update(visible=True)
             window[f'-DYNAMIC_INPUT_{i}-'].update(visible=True)
             window["-dCOL-"].contents_changed() # Update scroll region
+    player_count = rowCount # Set the player count variable equal to rowCount variable
+    participants = list(range(1, int(player_count + 1)))
 
 
 # Delete x number of input fields
 def delete_inputs(x):
-    global rowCount, trueRowCount
+    global rowCount, trueRowCount, player_count, participants
     rc = rowCount
     if rc > 0:
         for i in range(rc, clamp(rc - x, 0, 100), -1):
@@ -159,6 +162,8 @@ def delete_inputs(x):
                     window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
                     rowCount -= 1
         window["-dCOL-"].contents_changed() # Update scroll region
+    player_count = rowCount # Set the player count variable equal to rowCount variable
+    participants = list(range(1, int(player_count + 1)))
 
 # Define chosen dictionary by inputs
 def instance_dict(dictionary):
@@ -189,7 +194,7 @@ column2 = [
     [sg.Text("Column 2")],
     # Uncomment the following line to enable m slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"N = {params['n']}", background_color='white', text_color='black', key="nText"), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
+    [sg.Text(f"N = {params['n']}", background_color='white', text_color='black', key="nText"), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.01)],
     # Uncomment the following line to enable x_offset slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"X = {params['x_offset']}", background_color='white', text_color='black', key="xText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='xSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
     # Uncomment the following line to enable z slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
@@ -330,9 +335,11 @@ while True:
     event, values = window.read()
     if event == sg.WINDOW_CLOSED or event == "Exit" or event == "Exit2":
         break
-    if event == "-TABGROUP-":
+    if event == "-TABGROUP-": # Update on tab switched
         instance_dict(myDict)
         table_populate()
+        odds = [odds_function(x)[0] for x in lottery_participants] # Calculate odds
+        weights = [odds_function(x)[1] for x in lottery_participants] # Get weights from odds function
     # Sliders
     #if event == 'mSlider':
         #controlSlider('m', 'mSlider', 'mText', 'M')
