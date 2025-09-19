@@ -62,11 +62,21 @@ def delete_inputs(x):
                     rowCount -= 1
         window["-dCOL-"].contents_changed() # Update scroll region
 
+# Print input fields as a dictionary
 def print_inputs():
     for i in range(1, rowCount + 1):
         print(window[f'-DYNAMIC_INPUT_{i}-'].get())
 
-column0 = [
+# Define chosen dictionary by inputs
+def instance_dict(dictionary):
+    dict = dictionary
+    dictionary = {}
+    # Swap keys and values in dictionary, then set them back to myDict
+    for i in range(1, rowCount + 1):
+        dict[i] = window[f'-DYNAMIC_INPUT_{i}-'].get()
+
+
+column3 = [
         [sg.Text("Column 0")],
         [sg.Button("Exit"), sg.Button("Print")], 
         [sg.Button("Add Inputs"), sg.Input(key='input_add', size=(10,1), default_text="1")],
@@ -77,7 +87,7 @@ column0 = [
         [sg.Button("Search"), sg.Input(key='input3', size=(10,1))],
 ]
 
-column1 = [
+column4 = [
     [sg.Text("Dynamic Input Rows")],
     [sg.Column(
         [],              # start with empty row list
@@ -93,7 +103,7 @@ column1 = [
 ]
 
 tab_layout1 = [
-    [sg.Column(column0, key='-COL0-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column1, key='-COL1-', vertical_alignment="t")],
+    [sg.Column(column3, key='-COL3-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column4, key='-COL4-', vertical_alignment="t")],
 ]
 
 tab_layout2 = [
@@ -112,6 +122,7 @@ while True:
     if event == sg.WINDOW_CLOSED or event == "Exit": # Exit window event
         break
     if event == "Print": # Print button
+        instance_dict(myDict)
         print("Printing myDict:")
         print(myDict)
     if event == "Add": # Add button
