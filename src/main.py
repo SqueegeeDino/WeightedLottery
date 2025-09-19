@@ -31,7 +31,7 @@ user_clampHigh = 0
 user_clampLow = 0
 
 
-my_dict = {} # Main dictionary to hold player names and their assigned numbers
+myDict = {} # Main dictionary to hold player names and their assigned numbers
 lottery_participants = []  # To hold participants for each lottery run  
 
 # === Define functions === 
@@ -70,32 +70,9 @@ def odds_function(x):
 def clamp(value, min_val, max_val):
         return max(min(value, max_val), min_val)
 
-''' Old separate print functions
-# Define print odds function
-def print_odds():
-    global participants, weights, my_dict
-    odds = [odds_function(x) for x in participants] # Calculate odds
-    window['-TERMINAL2-'].update('')
-    for p, o in zip(participants, odds):
-        window['-TERMINAL2-'].print(
-    f"{my_dict[p]:<10}(#{p:<3}): odds = {o*100:6.2f}%"
-)
-# Define print weights function
-def print_weights():
-    global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
-    weights = [exponential_function(x) for x in participants] # Calculate initial weights
-    if clamp_bool:
-        weights = [clamp(w, clamp_low, clamp_high) for w in weights]
-    window['-TERMINAL-'].update('')
-    for p, w in zip(participants, weights):
-        window['-TERMINAL-'].print(
-            f"{my_dict[p]:<10}(#{p:<3}): {w:8.2f}"
-    )
-'''
-
 # New combined print weights and odds function
 def print_odds():
-    global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
+    global participants, weights, myDict, clamp_bool, clamp_high, clamp_low
     
     # Get odds and weights
     odds = [odds_function(x)[0] for x in participants] # Calculate odds
@@ -119,12 +96,12 @@ def print_odds():
     # Print rows
     for p, w, o in zip(participants, weights, odds):
         window['-TERMINAL-'].print(
-            f"{my_dict[p]:<{name_width}} (#{p:<3}) {w:{weight_width}.2f} {o*100:{odds_width}.2f}%"
+            f"{myDict[p]:<{name_width}} (#{p:<3}) {w:{weight_width}.2f} {o*100:{odds_width}.2f}%"
         )
 
 # Define table_populate function
 def table_populate():
-    global participants, weights, my_dict, clamp_bool, clamp_high, clamp_low
+    global participants, weights, myDict, clamp_bool, clamp_high, clamp_low
 
     # Get odds and weights
     odds = [odds_function(x)[0] for x in participants] # Calculate odds
@@ -132,7 +109,7 @@ def table_populate():
     
     table_data = []
     for p, w, o in zip(participants, weights, odds):
-        table_data.append([my_dict[p], p, f"{w:.2f}", f"{o*100:.2f}%"])
+        table_data.append([myDict[p], p, f"{w:.2f}", f"{o*100:.2f}%"])
     
     window['-TABLE-'].update(values=table_data)
 
@@ -142,9 +119,50 @@ def controlSlider(param_name, slider, text, label):
     value = values[f'{slider}']  # Get value from GUI slider
     params[param_name] = value   # Dynamically assign value to param
     window[f'{text}'].update(f"{label} = {value}") # Update text display
-    #print_odds()     # Recalculate and print odds
     table_populate() # Update table
     return value
+
+# Clear all input fields
+def clear_inputs():
+    for i in range(1, trueRowCount + 1):
+        window[f'-DYNAMIC_INPUT_{i}-'].update(f"Player {i}")
+
+# Add x number of input fields
+def add_inputs(x):
+    global rowCount, trueRowCount
+    rc = rowCount
+    trc = trueRowCount
+    for i in range(rc + 1, rc + x + 1):
+        if i > trc:
+            new_input_row = [
+                sg.pin(sg.Text(f"{i}", key=f"-LABEL_{i}-", justification="left", p=(5,5))),
+                sg.pin(sg.Input(key=f'-DYNAMIC_INPUT_{i}-', default_text=f"Player {i}"))]
+            window.extend_layout(window['-dCOL-'], [new_input_row])
+            rowCount += 1
+            trueRowCount += 1
+            window["-dCOL-"].contents_changed() # Update scroll region
+        else:
+            rowCount += 1
+            window[f"-LABEL_{i}-"].update(visible=True)
+            window[f'-DYNAMIC_INPUT_{i}-'].update(visible=True)
+            window["-dCOL-"].contents_changed() # Update scroll region
+
+
+# Delete x number of input fields
+def delete_inputs(x):
+    global rowCount, trueRowCount
+    rc = rowCount
+    if rc > 0:
+        for i in range(rc, clamp(rc - x, 0, 100), -1):
+                if window[f'-DYNAMIC_INPUT_{i}-']:
+                    window[f"-LABEL_{i}-"].update(visible=False)
+                    window[f'-DYNAMIC_INPUT_{i}-'].update(visible=False)
+                    rowCount -= 1
+        window["-dCOL-"].contents_changed() # Update scroll region
+
+def print_inputs():
+    for i in range(1, rowCount + 1):
+        print(window[f'-DYNAMIC_INPUT_{i}-'].get())
 
 # === GUI Layout ===
 # Header Image
@@ -174,7 +192,7 @@ column2 = [
 
 column3 = [
         [sg.Text("Column 0")],
-        [sg.Button("Exit"), sg.Button("Print")], 
+        [sg.Button("Exit2"), sg.Button("Print")], 
         [sg.Button("Add Inputs"), sg.Input(key='input_add', size=(10,1), default_text="1")],
         [sg.Button("Remove Inputs"), sg.Input(key='input_remove', size=(10,1), default_text="1")],
         [sg.Button("Clear Inputs", tooltip="Reset input fields to default values"), sg.Button("Print Inputs")],
@@ -252,18 +270,17 @@ if player_count and player_count.isdigit():
     for i in range(player_count):
         name = sg.popup_get_text(f"Enter name for player {i + 1}:", title="Player Name")
         if name:
-            my_dict[name] = i + 1
+            myDict[name] = i + 1
 
-# Swap keys and values in dictionary, then set them back to my_dict
-swapped_dict = {v: k for k, v in my_dict.items()}
-my_dict = swapped_dict
+# Swap keys and values in dictionary, then set them back to myDict
+swapped_dict = {v: k for k, v in myDict.items()}
+myDict = swapped_dict
 
 # Tabs
 tab_layout_1 = [
     [
         sg.Image(filename=image_file),
         sg.VSeparator(),
-        #sg.Frame("Player odds", terminal_output_2), sg.VSeparator(), 
         sg.Frame("Player odds", table_area), sg.VSeparator(),
         sg.Frame("Player weights", terminal_output), 
         sg.Button("Exit"),
@@ -302,13 +319,12 @@ window['bText'].update(f"B = {params['b']}")
 # Initialize participants and compute initial weights
 participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
-#print_odds() # Intitial printing of odds and weights
 table_populate() # Initial population of table
 
 # === GUI Event Loop ===
 while True:
     event, values = window.read()
-    if event == sg.WINDOW_CLOSED or event == "Exit":
+    if event == sg.WINDOW_CLOSED or event == "Exit" or event == "Exit2":
         break
     # Sliders
     #if event == 'mSlider':
@@ -350,7 +366,6 @@ while True:
             clamp_low = -999999
             window['clampHigh'].update(disabled=True)
             window['clampLow'].update(disabled=True)
-        #print_odds()
         table_populate()
     if event == "clampHigh":
         try:
@@ -364,11 +379,11 @@ while True:
                 window['clampHigh'].update("")
                 continue    
             user_clampHigh = clamp_high
-            #print_odds()
             table_populate()
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
             continue
+    # Clamping checkbox
     if event == "clampLow":
         try:
             clamp_low = int(values['clampLow'])
@@ -383,7 +398,6 @@ while True:
                 window['clampLow'].update("")
                 continue
             user_clampLow = clamp_low
-            #print_odds()
             table_populate()
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
@@ -410,7 +424,7 @@ while True:
         weights = [odds_function(x)[1] for x in participants] # Get weights from odds function
         window['-TERMINAL-'].update('')
         for p, w in zip(participants, weights):
-            window['-TERMINAL-'].print(f"{my_dict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+            window['-TERMINAL-'].print(f"{myDict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
     # Run Lottery button
     if event == "buttonRun":
         lottery_participants = participants.copy()  # Reset participants for new draw
@@ -428,11 +442,62 @@ while True:
             winners.append(winner)
 
             # Announce winner
-            sg.popup(f"Winner of Round {round_number}:\n "f"{my_dict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=2, button_justification="centered")
-            window['-TERMINAL-'].print(f"{round_number}: {my_dict[winner]}")
+            sg.popup(f"Winner of Round {round_number}:\n "f"{myDict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=2, button_justification="centered")
+            window['-TERMINAL-'].print(f"{round_number}: {myDict[winner]}")
 
             # Remove winner from participant pool
             index = lottery_participants.index(winner)
             lottery_participants.pop(index)
+    
+    # Tab 2
+    if event == "Print": # Print button
+        print("Printing myDict:")
+        print(myDict)
+    if event == "Add": # Add button
+        try:
+            if values['input1']:
+                name = values['input1']
+                if myDict.get(name):
+                    print(f"Player {name} already exists")
+                else: # Only append if no duplicates
+                    myDict[name] = len(myDict) +1
+                    window["input1"].update("")
+            else: # Prevent adding blanks
+                print("Cannot add blank player")
+        except ValueError: # Catch any other errors
+            print("Please enter valid values")
+    if event == "Remove": # Remove button
+        try:
+            if values['input2']:   
+                name = values['input2']   
+                try: # Try to remove the name at 'input2'
+                    myDict.pop(name)
+                    cloneDict = {} # Wipe the clone dict
+                    for p in myDict:
+                        cloneDict[p] = len(cloneDict) + 1
+                    window['input2'].update("")
+                    myDict = cloneDict
+                except ValueError: # Catch errors if trying to remove a name that doesn't exist
+                    print(f"{name} not found in list.")
+            else: # Prevent removing blanks
+                print("No input value found")
+        except ValueError: # Catch any other errors
+            print("Error on removal")
+    if event == "Search":
+        if values['input3']:
+            try:
+                searchIndex = int(values['input3'])
+                if searchIndex <= rowCount and searchIndex > 0:
+                    print(values[f'-DYNAMIC_INPUT_{searchIndex}-'])
+            except ValueError:
+                print("Please input a valid integer")
+    if event == "Add Inputs":
+        add_inputs(int(values['input_add']))
+    if event == "Remove Inputs":
+        delete_inputs(int(values['input_remove']))
+    if event == "Clear Inputs":
+        clear_inputs()
+    if event == "Print Inputs":
+        print_inputs()
 
 window.close()
