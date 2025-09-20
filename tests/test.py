@@ -70,104 +70,19 @@ def print_inputs():
 # Define chosen dictionary by inputs
 def instance_dict(dictionary):
     dict = dictionary
-    dictionary = {}
-    # Swap keys and values in dictionary, then set them back to myDict
+    dictionary = {} # Wipe the global dictonary value to replace rather than append
     for i in range(1, rowCount + 1):
         dict[i] = window[f'-DYNAMIC_INPUT_{i}-'].get()
 
-
-column3 = [
-        [sg.Text("Column 0")],
-        [sg.Button("Exit"), sg.Button("Print")], 
-        [sg.Button("Add Inputs"), sg.Input(key='input_add', size=(10,1), default_text="1")],
-        [sg.Button("Remove Inputs"), sg.Input(key='input_remove', size=(10,1), default_text="1")],
-        [sg.Button("Clear Inputs", tooltip="Reset input fields to default values"), sg.Button("Print Inputs")],
-        [sg.Button("Add", bind_return_key=True), sg.Input(key='input1', size=(10,1))],
-        [sg.Button("Remove"), sg.Input(key='input2', size=(10,1))],
-        [sg.Button("Search"), sg.Input(key='input3', size=(10,1))],
-]
-
-column4 = [
-    [sg.Text("Dynamic Input Rows")],
-    [sg.Column(
-        [],              # start with empty row list
-        key='-dCOL-',
-        vertical_scroll_only=True,
-        size=(200, 300),   # give it a fixed size if you want scroll
-        expand_y=True,
-        justification='right',   # align horizontally
-        element_justification='left',  # align inside rows
-        scrollable=True,
-        vertical_alignment="t",
-    )]
-]
-
-tab_layout1 = [
-    [sg.Column(column3, key='-COL3-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column4, key='-COL4-', vertical_alignment="t")],
-]
-
-tab_layout2 = [
-    [sg.Text("Tab 2")],
-]
-
 layout = [
-    [sg.TabGroup([[sg.Tab('Main', tab_layout1), sg.Tab('Tab 2', tab_layout2)]], key='-TABGROUP-', expand_x=True, expand_y=True)],
+     [sg.Text("Main Window")],
+     [sg.Button("Exit")]
 ]
 
-window = sg.Window("MainWindow", layout, finalize=True, resizable=True)
+window = sg.Window("Main Window", layout, finalize=True)
 
-# === GUI Event Loop
+# === GUI Event Loop ===
 while True:
-    event, values = window.read() # Necessary for reading window events
-    if event == sg.WINDOW_CLOSED or event == "Exit": # Exit window event
+     event, values = window.read()
+     if event == sg.WINDOW_CLOSED or event == "Exit":
         break
-    if event == "Print": # Print button
-        instance_dict(myDict)
-        print("Printing myDict:")
-        print(myDict)
-    if event == "Add": # Add button
-        try:
-            if values['input1']:
-                name = values['input1']
-                if myDict.get(name):
-                    print(f"Player {name} already exists")
-                else: # Only append if no duplicates
-                    myDict[name] = len(myDict) +1
-                    window["input1"].update("")
-            else: # Prevent adding blanks
-                print("Cannot add blank player")
-        except ValueError: # Catch any other errors
-            print("Please enter valid values")
-    if event == "Remove": # Remove button
-        try:
-            if values['input2']:   
-                name = values['input2']   
-                try: # Try to remove the name at 'input2'
-                    myDict.pop(name)
-                    cloneDict = {} # Wipe the clone dict
-                    for p in myDict:
-                        cloneDict[p] = len(cloneDict) + 1
-                    window['input2'].update("")
-                    myDict = cloneDict
-                except ValueError: # Catch errors if trying to remove a name that doesn't exist
-                    print(f"{name} not found in list.")
-            else: # Prevent removing blanks
-                print("No input value found")
-        except ValueError: # Catch any other errors
-            print("Error on removal")
-    if event == "Search":
-        if values['input3']:
-            try:
-                searchIndex = int(values['input3'])
-                if searchIndex <= rowCount and searchIndex > 0:
-                    print(values[f'-DYNAMIC_INPUT_{searchIndex}-'])
-            except ValueError:
-                print("Please input a valid integer")
-    if event == "Add Inputs":
-        add_inputs(int(values['input_add']))
-    if event == "Remove Inputs":
-        delete_inputs(int(values['input_remove']))
-    if event == "Clear Inputs":
-        clear_inputs()
-    if event == "Print Inputs":
-        print_inputs()
