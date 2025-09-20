@@ -13,10 +13,9 @@ rowCount = 0
 trueRowCount = 0
 
 # Emojiis using unicode
-mojiUpArrow1 = "\U0001F53C"
-mojiUpArrow2 = "\U000023EB"
-mojiDownArrow1 = "\U0001F53D"
-mojiDownArrow2 = "\U000023EC"
+mojiUpArrow1 = "▲"
+mojiDownArrow1 = "▼"
+mojiNeutral = "\U00002796"
 
 # Exponential function parameters
 params = {
@@ -191,10 +190,9 @@ def print_inputs():
 image_file = os.path.abspath("./src/logo.png")  # Replace with your image file path
 
 # Arrow definitions. These can be clicked if added to the UI directly
-upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color="OliveDrab3", text_color="grey4", enable_events=True)
-upArrow2 = sg.Text(f"{mojiUpArrow2}", k="upArrow2", font=(10), background_color="green2", text_color="grey4", enable_events=True)
-downArrow1 = sg.Text(f"{mojiDownArrow1}", k="downArrow1", font=(10), background_color="coral", text_color="grey4", enable_events=True)
-downArrow2 = sg.Text(f"{mojiDownArrow2}", k="downArrow2", font=(10), background_color="firebrick2", text_color="grey4", enable_events=True)
+upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color="green2", text_color="grey4", enable_events=True)
+downArrow1 = sg.Text(f"{mojiDownArrow1}", k="downArrow1", font=(10), background_color="firebrick2", text_color="grey4", enable_events=True)
+neutral = sg.Text(f"{mojiNeutral}", k="neutral", font=(10), background_color="LightSteelBlue3", text_color="grey4", enable_events=True)
 
 # Column 0 layout. Dynamic name list
 column0 = [
@@ -508,7 +506,16 @@ while True:
 
             # Announce winner
             sg.popup(f"Winner of Round {round_number}:\n "f"{myDict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=2, button_justification="centered")
-            window['-TERMINAL-'].print(f"{round_number}: {myDict[winner]}")
+            window['-TERMINAL-'].print(f"{round_number}: {myDict[winner]}") # Print winner to terminal. Will likely be deprecated soon
+            # Create a new row each time with text + the arrow
+            new_row = [
+                sg.Text(f"{round_number}:" f"{myDict[winner]}", size=(10,1)), 
+                sg.Text(mojiUpArrow1, font=(10), background_color="OliveDrab3"),
+            ]
+            separator_row = [sg.HSeparator()] # Horizontal separator
+
+            window.extend_layout(window["-dCOL0-"], [new_row, separator_row]) # Extend the column with the text (new row), and the separator
+            window["-dCOL0-"].contents_changed()  # update scroll region
 
             # Remove winner from participant pool
             index = lottery_participants.index(winner)
