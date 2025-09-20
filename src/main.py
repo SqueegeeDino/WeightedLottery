@@ -186,8 +186,11 @@ def print_inputs():
         print(window[f'-DYNAMIC_INPUT_{i}-'].get())
 
 # === GUI Layout ===
-# Header Image
+# Logo image
 image_file = os.path.abspath("./src/logo.png")  # Replace with your image file path
+
+# Header
+header_file = os.path.abspath("./src/header.png")  # Replace with your image file path
 
 # Arrow definitions. These can be clicked if added to the UI directly
 upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color="green2", text_color="grey4", enable_events=True)
@@ -326,8 +329,8 @@ myDict = swapped_dict
 
 # Tabs
 tab_layout_1 = [
+    [sg.Push(), sg.Image(filename=header_file), sg.Push()],
     [
-        sg.Image(filename=image_file),
         sg.VSeparator(),
         sg.Frame("Player Information", table_area, size=(300,300)), sg.VSeparator(),
         sg.Frame("Column 0", column0)
@@ -509,7 +512,7 @@ while True:
             window['-TERMINAL-'].print(f"{round_number}: {myDict[winner]}") # Print winner to terminal. Will likely be deprecated soon
             # Create a new row each time with text + the arrow
             new_row = [
-                sg.Text(f"{round_number}:" f"{myDict[winner]}", size=(10,1)), 
+                sg.Text(f"{round_number}: " f"{myDict[winner]}", size=(10,1)), 
                 sg.Text(mojiUpArrow1, font=(10), background_color="OliveDrab3"),
             ]
             separator_row = [sg.HSeparator()] # Horizontal separator
