@@ -115,11 +115,11 @@ def table_populate():
     window['-TABLE-'].update(values=table_data)
 
 # Function to control slider logic in GUI
-def controlSlider(param_name, slider, text, label):
+def controlSlider(param_name, slider, inputField, label):
     global params, weights, participants
     value = values[f'{slider}']  # Get value from GUI slider
     params[param_name] = value   # Dynamically assign value to param
-    window[f'{text}'].update(f"{label} = {value}") # Update text display
+    window[f'{inputField}'].update(value) # Update text display
     table_populate() # Update table
     return value
 
@@ -198,12 +198,12 @@ column2 = [
     [sg.Text("Column 2")],
     # Uncomment the following line to enable m slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"N = {params['n']}", background_color='white', text_color='black', key="nText"), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.01)],
+    [sg.Text(f"N = ", key="nText"),sg.Input(key="n_Input", size=(3,1)), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.01)],
     # Uncomment the following line to enable x_offset slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"X = {params['x_offset']}", background_color='white', text_color='black', key="xText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='xSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
     # Uncomment the following line to enable z slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"Z = {params['z']}", background_color='white', text_color='black', key="zText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='zSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"B = {params['b']}", background_color='white', text_color='black', key="bText"), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
+    [sg.Text(f"B = ",key="bText"), sg.Input(key="b_Input", size=(3,1)), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
 ]
 
 # Column 3 layout. Player list controls
@@ -363,13 +363,13 @@ while True:
     #if event == 'mSlider':
         #controlSlider('m', 'mSlider', 'mText', 'M')
     if event == 'nSlider':
-        controlSlider('n', 'nSlider', 'nText', 'N')
+        controlSlider('n', 'nSlider', 'n_Input', 'N')
     #if event == 'xSlider':
         #controlSlider('x_offset', 'xSlider', 'xText', 'X')
     #if event == 'zSlider':
         #controlSlider('z', 'zSlider', 'zText', 'Z')
     if event == 'bSlider':
-        controlSlider('b', 'bSlider', 'bText', 'B')
+        controlSlider('b', 'bSlider', 'b_Input', 'B')
     # Clamping
     if event == 'clampWeights':
         if values['clampWeights']: # Trigger when checking clamps to True
