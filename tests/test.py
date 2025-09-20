@@ -18,10 +18,9 @@ testDict = {}
 
 myDict.items
 
-mojiUpArrow1 = "\U0001F53C"
-mojiUpArrow2 = "\U000023EB"
-mojiDownArrow1 = "\U0001F53D"
-mojiDownArrow2 = "\U000023EC"
+mojiUpArrow1 = "▲"
+mojiDownArrow1 = "▼"
+mojiNeutral = "\U00002796"
 
 # === Functions for Dynamic Input Rows ===
 
@@ -81,10 +80,9 @@ def instance_dict(dictionary):
 
 # === UI Elements ===
 
-upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color="OliveDrab3", text_color="grey4", enable_events=True)
-upArrow2 = sg.Text(f"{mojiUpArrow2}", k="upArrow2", font=(10), background_color="green2", text_color="grey4", enable_events=True)
-downArrow1 = sg.Text(f"{mojiDownArrow1}", k="downArrow1", font=(10), background_color="coral", text_color="grey4", enable_events=True)
-downArrow2 = sg.Text(f"{mojiDownArrow2}", k="downArrow2", font=(10), background_color="firebrick2", text_color="grey4", enable_events=True)
+upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color="green2", text_color="grey4", enable_events=True)
+downArrow1 = sg.Text(f"{mojiDownArrow1}", k="downArrow1", font=(10), background_color="firebrick2", text_color="grey4", enable_events=True)
+neutral = sg.Text(f"{mojiNeutral}", k="neutral", font=(10), background_color="LightSteelBlue3", text_color="grey4", enable_events=True)
 
 # Terminal output area
 terminal_output = [
@@ -115,7 +113,7 @@ column0 = [
 # Primary layout
 layout = [
      [sg.Text("Main Window", relief="solid", font=(12))],
-     [upArrow1, upArrow2, downArrow1, downArrow2],
+     [upArrow1, downArrow1, neutral],
      [sg.Frame("Frame 0", column0, relief="groove")],
      [sg.Button("Print")],
      [sg.Button("Exit")]

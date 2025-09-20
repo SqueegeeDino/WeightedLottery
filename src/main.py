@@ -12,6 +12,12 @@ import os
 rowCount = 0
 trueRowCount = 0
 
+# Emojiis using unicode
+mojiUpArrow1 = "\U0001F53C"
+mojiUpArrow2 = "\U000023EB"
+mojiDownArrow1 = "\U0001F53D"
+mojiDownArrow2 = "\U000023EC"
+
 # Exponential function parameters
 params = {
     "m": 1,
@@ -184,12 +190,32 @@ def print_inputs():
 # Header Image
 image_file = os.path.abspath("./src/logo.png")  # Replace with your image file path
 
+# Arrow definitions. These can be clicked if added to the UI directly
+upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color="OliveDrab3", text_color="grey4", enable_events=True)
+upArrow2 = sg.Text(f"{mojiUpArrow2}", k="upArrow2", font=(10), background_color="green2", text_color="grey4", enable_events=True)
+downArrow1 = sg.Text(f"{mojiDownArrow1}", k="downArrow1", font=(10), background_color="coral", text_color="grey4", enable_events=True)
+downArrow2 = sg.Text(f"{mojiDownArrow2}", k="downArrow2", font=(10), background_color="firebrick2", text_color="grey4", enable_events=True)
+
+# Column 0 layout. Dynamic name list
+column0 = [
+    [sg.Column(
+        [],
+        key='-dCOL0-',
+        vertical_scroll_only=True,
+        size=(400,300),
+        expand_y=True,
+        justification='right',
+        scrollable=True,
+        vertical_alignment='t',
+    )],
+]
+
 # Column 1 layout. Buttons and clamp inputs
 column1 = [
     [sg.Text("Column 1")],
-    [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"), 
+    [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"),
      sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights', enable_events=True, tooltip="Enable weight clamping"),
-     sg.Button("Run Lottery", key='buttonRun', tooltip="Run the lottery with current settings")],
+     sg.Button("Run Lottery", key='buttonRun', tooltip="Run the lottery with current settings"), sg.Button("Exit"),],
     [sg.Text("Clamp High"), sg.Input(key='clampHigh', size=(10,1), disabled=True, enable_events=True), sg.VSeparator(), sg.Text("Clamp Low"), sg.Input(key='clampLow', size=(10,1), disabled=True, enable_events=True),],
 ]
 
@@ -306,11 +332,10 @@ tab_layout_1 = [
         sg.Image(filename=image_file),
         sg.VSeparator(),
         sg.Frame("Player Information", table_area, size=(300,300)), sg.VSeparator(),
-        sg.Frame("Main Terminal", terminal_output), 
-        sg.Button("Exit"),
+        sg.Frame("Column 0", column0)
     ],
     [
-        sg.Column(column1), sg.Column(column2),
+        sg.Column(column1), sg.Column(column2), sg.Frame("Main Terminal", terminal_output), 
         sg.VSeparator(),
         #sg.Frame("Plot Area", plotArea)
     ],
@@ -464,7 +489,7 @@ while True:
         weights = [odds_function(x)[1] for x in participants] # Get weights from odds function
         window['-TERMINAL-'].update('')
         window['-TERMINAL-'].print("Defaults set")
-        
+
     # Run Lottery button
     if event == "buttonRun":
         lottery_participants = participants.copy()  # Reset participants for new draw
