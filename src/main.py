@@ -198,12 +198,12 @@ column2 = [
     [sg.Text("Column 2")],
     # Uncomment the following line to enable m slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"N = ", key="nText"),sg.Input(key="n_Input", size=(3,1)), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.01)],
+    [sg.Text(f"N =", key="nText"),sg.Input(key="n_Input", size=(5,1), enable_events=True), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.01)],
     # Uncomment the following line to enable x_offset slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"X = {params['x_offset']}", background_color='white', text_color='black', key="xText"), sg.Slider((0, 5), orientation='h', size=(20, 15), key='xSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
     # Uncomment the following line to enable z slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"Z = {params['z']}", background_color='white', text_color='black', key="zText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='zSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
-    [sg.Text(f"B = ",key="bText"), sg.Input(key="b_Input", size=(3,1)), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
+    [sg.Text(f"B =",key="bText"), sg.Input(key="b_Input", size=(5,1), enable_events=True), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
 ]
 
 # Column 3 layout. Player list controls
@@ -328,17 +328,6 @@ layout = [
 # Create the window
 window = sg.Window("Two Columns with Terminal", layout, finalize=True)
 
-#window['mSlider'].update(params['m'])
-window['nSlider'].update(params['n'])
-#window['xSlider'].update(params['x_offset'])
-#window['zSlider'].update(params['z'])
-window['bSlider'].update(params['b'])
-#window['mText'].update(f"M = {params['m']}")
-window['nText'].update(f"N = {params['n']}")
-#window['xText'].update(f"X = {params['x_offset']}")
-#window['zText'].update(f"Z = {params['z']}")
-window['bText'].update(f"B = {params['b']}")
-
 # === Lottery Logic ===
 # Generate player list
 add_inputs(player_count)
@@ -347,6 +336,11 @@ instance_dict(myDict)
 participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
 table_populate() # Initial population of table
+# Update sliders and their inputs
+window['nSlider'].update(params['n'])
+window['bSlider'].update(params['b'])
+window['n_Input'].update(params['n'])
+window['b_Input'].update(params['b'])
 
 # === GUI Event Loop ===
 while True:
@@ -359,6 +353,7 @@ while True:
         odds = [odds_function(x)[0] for x in lottery_participants] # Calculate odds
         weights = [odds_function(x)[1] for x in lottery_participants] # Get weights from odds function
         window["-dCOL-"].contents_changed() # Update scroll region
+    
     # Sliders
     #if event == 'mSlider':
         #controlSlider('m', 'mSlider', 'mText', 'M')
@@ -370,6 +365,15 @@ while True:
         #controlSlider('z', 'zSlider', 'zText', 'Z')
     if event == 'bSlider':
         controlSlider('b', 'bSlider', 'b_Input', 'B')
+    
+    # Slider inputs
+    if event == 'n_Input':
+        params['n'] = int(values['n_Input'])
+        window['nSlider'].update(params['n'])
+    if event == 'b_Input':
+        params['b'] = int(values['b_Input'])
+        window['bSlider'].update(params['b'])
+
     # Clamping
     if event == 'clampWeights':
         if values['clampWeights']: # Trigger when checking clamps to True
@@ -435,6 +439,7 @@ while True:
         except ValueError:
             window['-TERMINAL-'].print("Invalid input. Please enter integer values.")
             continue
+    
     # Defaults button
     if event == "buttonDefaults":
         # Reset equation and sliders
@@ -458,8 +463,8 @@ while True:
         odds = [odds_function(x)[0] for x in participants] # Calculate odds
         weights = [odds_function(x)[1] for x in participants] # Get weights from odds function
         window['-TERMINAL-'].update('')
-        for p, w in zip(participants, weights):
-            window['-TERMINAL-'].print(f"{myDict[p]:<10}" + f"(#{p}): weight = {w:.2f}")
+        window['-TERMINAL-'].print("Defaults set")
+        
     # Run Lottery button
     if event == "buttonRun":
         lottery_participants = participants.copy()  # Reset participants for new draw
