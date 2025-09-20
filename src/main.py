@@ -149,6 +149,8 @@ def add_inputs(x):
             window["-dCOL-"].contents_changed() # Update scroll region
     player_count = rowCount # Set the player count variable equal to rowCount variable
     participants = list(range(1, int(player_count + 1)))
+    window["-dCOL-"].contents_changed() # Update scroll region
+    window.refresh
 
 
 # Delete x number of input fields
@@ -164,6 +166,8 @@ def delete_inputs(x):
         window["-dCOL-"].contents_changed() # Update scroll region
     player_count = rowCount # Set the player count variable equal to rowCount variable
     participants = list(range(1, int(player_count + 1)))
+    window["-dCOL-"].contents_changed() # Update scroll region
+    window.refresh
 
 # Define chosen dictionary by inputs
 def instance_dict(dictionary):
@@ -204,14 +208,14 @@ column2 = [
 
 column3 = [
         [sg.Text("Column 0")],
-        [sg.Button("Exit", key='Exit2'), sg.Button("Print")], 
+        [sg.Button("Exit", key='Exit2'), sg.Button("Debug")], 
         [sg.Button("Add Inputs"), sg.Input(key='input_add', size=(10,1), default_text="1")],
         [sg.Button("Remove Inputs"), sg.Input(key='input_remove', size=(10,1), default_text="1")],
         [sg.Button("Clear Inputs", tooltip="Reset input fields to default values"), sg.Button("Print Inputs")],
 ]
 
 column4 = [
-    [sg.Text("Dynamic Input Rows")],
+    [sg.Text("Players")],
     [sg.Column(
         [],              # start with empty row list
         key='-dCOL-',
@@ -273,7 +277,7 @@ table_area = [
 ]
 
 # Player count pop up
-while True:
+while True: # Keep looping popups until user enters a valid number for player count
     player_count = sg.popup_get_text("Enter number of players:", title="Player Count")
     if player_count and player_count.isdigit():
         player_count = int(player_count)
@@ -281,7 +285,7 @@ while True:
     else:
         sg.popup("Please enter a valid player count (0 is a valid count)")
 
-'''
+''' # Uncomment section to have player name popups (not fixed since adding while True loop above. Might need refactoring)
 # Player names loop
 if player_count and player_count.isdigit():
     player_count = int(player_count)
@@ -312,7 +316,7 @@ tab_layout_1 = [
 ]
 
 tab_layout_2 = [
-    [sg.Text("Player List"), sg.Column(column3, key='-COL3-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column4, key='-COL4-', vertical_alignment="t")],
+    [sg.Column(column3, key='-COL3-', vertical_alignment="t"), sg.VSeperator(), sg.Column(column4, key='-COL4-', vertical_alignment="t")],
 ]
 
 # Full layout: Image and terminal at top, then two colums, then terminal at bottom
@@ -335,6 +339,9 @@ window['nText'].update(f"N = {params['n']}")
 window['bText'].update(f"B = {params['b']}")
 
 # === Lottery Logic ===
+# Generate player list
+add_inputs(player_count)
+instance_dict(myDict)
 # Initialize participants and compute initial weights
 participants = list(range(1, int(player_count + 1)))  # Numbers 1 to 12
 winners = []
@@ -350,6 +357,7 @@ while True:
         table_populate()
         odds = [odds_function(x)[0] for x in lottery_participants] # Calculate odds
         weights = [odds_function(x)[1] for x in lottery_participants] # Get weights from odds function
+        window["-dCOL-"].contents_changed() # Update scroll region
     # Sliders
     #if event == 'mSlider':
         #controlSlider('m', 'mSlider', 'mText', 'M')
@@ -428,6 +436,7 @@ while True:
             continue
     # Defaults button
     if event == "buttonDefaults":
+        # Reset equation and sliders
         params = params_default.copy()
         #window['mSlider'].update(params['m'])
         window['nSlider'].update(params['n'])
@@ -439,11 +448,12 @@ while True:
         #window['xText'].update(f"X = {params['x_offset']}")
         #window['zText'].update(f"Z = {params['z']}")
         window['bText'].update(f"B = {params['b']}")
+        # Reset clamping
         window['clampWeights'].update(False)
         clamp_bool = False
         clamp_high = 999999
         clamp_low = 1
-        # Get odds and weights
+        # Get odds and weights, then reload information
         odds = [odds_function(x)[0] for x in participants] # Calculate odds
         weights = [odds_function(x)[1] for x in participants] # Get weights from odds function
         window['-TERMINAL-'].update('')
@@ -474,23 +484,30 @@ while True:
             lottery_participants.pop(index)
 
     # Tab 2
-    if event == "Print": # Print button
-        print("Printing myDict:")
-        print(myDict)
+    if event == "Debug": # Print button
+        print("Debugging")
+        window['input_add'].update("1")
     if event == "Add Inputs": # Add inputs button
-        add_inputs(int(values['input_add']))
-        instance_dict(myDict)
+        if values['input_add'] and values['input_add'].isdigit: # Check for a valid value in input field
+            add_inputs(int(values['input_add']))
+            instance_dict(myDict)
+        else: # If the value in input field is invalid, run x of 1 and reset input field to 1
+            window['input_add'].update("1")
+            add_inputs(1)
+            instance_dict(myDict)
     if event == "Remove Inputs": # Remove inputs button
-        delete_inputs(int(values['input_remove']))
-        instance_dict(myDict)
+        if values['input_remove'] and values['input_remove'].isdigit:
+            delete_inputs(int(values['input_remove']))
+            instance_dict(myDict)
+        else: # If the value in input field is invalid, run x of 1 and reset input field to 1
+            window['input_remove'].update("1")
+            delete_inputs(1)
+            instance_dict(myDict)
     if event == "Clear Inputs": # Clear inputs button
         clear_inputs()
         instance_dict(myDict)
     if event == "Print Inputs": # Print inputs button, mostly diagnostic
         print_inputs()
-        instance_dict(myDict)
-    if event == "Print": # Print button
-        print("Printing myDict:")
-        print(myDict)        
+        instance_dict(myDict)     
 
 window.close()
