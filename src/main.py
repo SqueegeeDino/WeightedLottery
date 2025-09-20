@@ -15,7 +15,7 @@ trueRowCount = 0
 # Emojiis using unicode
 mojiUpArrow1 = "▲"
 mojiDownArrow1 = "▼"
-mojiNeutral = "\U00002796"
+mojiNeutral = "◄"
 
 # Exponential function parameters
 params = {
@@ -157,7 +157,6 @@ def add_inputs(x):
     window["-dCOL-"].contents_changed() # Update scroll region
     window.refresh
 
-
 # Delete x number of input fields
 def delete_inputs(x):
     global rowCount, trueRowCount, player_count, participants
@@ -181,9 +180,24 @@ def instance_dict(dictionary):
     for i in range(1, rowCount + 1):
         dict[i] = window[f'-DYNAMIC_INPUT_{i}-'].get()
 
+# Define printing inputs
 def print_inputs():
     for i in range(1, rowCount + 1):
         print(window[f'-DYNAMIC_INPUT_{i}-'].get())
+
+# Define searching dictionaries by value rather than key
+def find_key_by_value(dictionary, target_value):
+    for key, value in dictionary.items():
+        if value == target_value:
+            return key
+    return None  # Return None if the value is not found
+
+# Define inverting dictionaries
+def invert_and_renumber(d):
+    # get keys in insertion order, reverse them, then assign "1","2",...
+    keys_reversed = reversed(list(d.keys()))
+    return {key: str(i) for i, key in enumerate(keys_reversed, start=1)}
+
 
 # === GUI Layout ===
 # Logo image
@@ -203,8 +217,9 @@ column0 = [
         [],
         key='-dCOL0-',
         vertical_scroll_only=True,
-        size=(400,300),
+        size=(400,250),
         expand_y=True,
+        expand_x=True,
         justification='right',
         scrollable=True,
         vertical_alignment='t',
@@ -215,6 +230,7 @@ column0 = [
 column1 = [
     [sg.Text("Column 1")],
     [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"),
+     sg.Button("Print", key="buttonPrint"),
      sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights', enable_events=True, tooltip="Enable weight clamping"),
      sg.Button("Run Lottery", key='buttonRun', tooltip="Run the lottery with current settings"), sg.Button("Exit"),],
     [sg.Text("Clamp High"), sg.Input(key='clampHigh', size=(10,1), disabled=True, enable_events=True), sg.VSeparator(), sg.Text("Clamp Low"), sg.Input(key='clampLow', size=(10,1), disabled=True, enable_events=True),],
@@ -379,6 +395,7 @@ while True:
         odds = [odds_function(x)[0] for x in lottery_participants] # Calculate odds
         weights = [odds_function(x)[1] for x in lottery_participants] # Get weights from odds function
         window["-dCOL-"].contents_changed() # Update scroll region
+        window['-dCOL0-'].contents_changed() # Update scroll region
     
     # Sliders
     #if event == 'mSlider':
@@ -491,12 +508,17 @@ while True:
         window['-TERMINAL-'].update('')
         window['-TERMINAL-'].print("Defaults set")
 
+    # Print button
+    if event == "buttonPrint":
+        print(myDict)
+    
     # Run Lottery button
     if event == "buttonRun":
         lottery_participants = participants.copy()  # Reset participants for new draw
         winners = [] # Reset winners list
         window['-TERMINAL-'].update("")
         window['-TERMINAL-'].print(f"Winners:\n")
+        invertedDict = invert_and_renumber(myDict)
         for round_number in range(1, int(player_count + 1)):
             # Compute current weights for remaining participants
             # Get odds and weights
@@ -506,24 +528,40 @@ while True:
             # Pick the winner based on current weights
             winner = random.choices(lottery_participants, weights=weights, k=1)[0]
             winners.append(winner)
+            winnerName = myDict[winner]
+            winnerNumber = find_key_by_value(myDict, winnerName)            
+            winnerExpected = int(invertedDict[winner])
 
             # Announce winner
-            sg.popup(f"Winner of Round {round_number}:\n "f"{myDict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=2, button_justification="centered")
+            #sg.popup(f"Winner of Round {round_number}:\n "f"{myDict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=0.5, button_justification="centered")
             window['-TERMINAL-'].print(f"{round_number}: {myDict[winner]}") # Print winner to terminal. Will likely be deprecated soon
             # Create a new row each time with text + the arrow
-            new_row = [
-                sg.Text(f"{round_number}: " f"{myDict[winner]}", size=(10,1)), 
-                sg.Text(mojiUpArrow1, font=(10), background_color="OliveDrab3"),
-            ]
+            if round_number < winnerExpected:
+                new_row = [
+                    sg.Text(f"{round_number}: " f"{myDict[winner]} exp pos: {winnerExpected}", size=(25,1)),
+                    sg.Text(mojiUpArrow1, font=(10), background_color="OliveDrab3"),
+                ]
+            elif round_number > winnerExpected:
+                new_row = [
+                    sg.Text(f"{round_number}: " f"{myDict[winner]} exp pos: {winnerExpected}", size=(25,1)),
+                    sg.Text(mojiDownArrow1, font=(10), background_color="coral"),
+                ]  
+            elif round_number == winnerExpected:
+                new_row = [
+                    sg.Text(f"{round_number}: " f"{myDict[winner]} exp pos: {winnerExpected}", size=(25,1)),
+                    sg.Text(mojiNeutral, font=(10), background_color="LightSteelBlue3"),
+                ]
             separator_row = [sg.HSeparator()] # Horizontal separator
 
             window.extend_layout(window["-dCOL0-"], [new_row, separator_row]) # Extend the column with the text (new row), and the separator
             window["-dCOL0-"].contents_changed()  # update scroll region
-
+            window.refresh()
             # Remove winner from participant pool
             index = lottery_participants.index(winner)
             lottery_participants.pop(index)
-
+            
+            window["-dCOL0-"].contents_changed()  # update scroll region          
+            window.refresh()
     # Tab 2
     if event == "Debug": # Print button
         print("Debugging")
@@ -536,6 +574,8 @@ while True:
             window['input_add'].update("1")
             add_inputs(1)
             instance_dict(myDict)
+        window["-dCOL-"].contents_changed()
+        window.refresh
     if event == "Remove Inputs": # Remove inputs button
         if values['input_remove'] and values['input_remove'].isdigit:
             delete_inputs(int(values['input_remove']))
@@ -544,6 +584,8 @@ while True:
             window['input_remove'].update("1")
             delete_inputs(1)
             instance_dict(myDict)
+        window["-dCOL-"].contents_changed()
+        window.refresh
     if event == "Clear Inputs": # Clear inputs button
         clear_inputs()
         instance_dict(myDict)
