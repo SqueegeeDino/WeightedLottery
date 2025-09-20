@@ -18,6 +18,11 @@ testDict = {}
 
 myDict.items
 
+mojiUpArrow1 = "\U0001F53C"
+mojiUpArrow2 = "\U000023EB"
+mojiDownArrow1 = "\U0001F53D"
+mojiDownArrow2 = "\U000023EC"
+
 # === Functions for Dynamic Input Rows ===
 
 # Define the clamp function
@@ -74,8 +79,45 @@ def instance_dict(dictionary):
     for i in range(1, rowCount + 1):
         dict[i] = window[f'-DYNAMIC_INPUT_{i}-'].get()
 
+# === UI Elements ===
+
+upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color="OliveDrab3", text_color="grey4", enable_events=True)
+upArrow2 = sg.Text(f"{mojiUpArrow2}", k="upArrow2", font=(10), background_color="green2", text_color="grey4", enable_events=True)
+downArrow1 = sg.Text(f"{mojiDownArrow1}", k="downArrow1", font=(10), background_color="coral", text_color="grey4", enable_events=True)
+downArrow2 = sg.Text(f"{mojiDownArrow2}", k="downArrow2", font=(10), background_color="firebrick2", text_color="grey4", enable_events=True)
+
+# Terminal output area
+terminal_output = [
+    [sg.Multiline(
+        size=(50, 8), 
+        disabled=True, 
+        autoscroll=True, 
+        key='-TERMINAL-', 
+        background_color='black', 
+    )]
+]
+
+# Column 0 layout. Dynamic name list
+column0 = [
+    [sg.Text("Column 0")],
+    [sg.Column(
+        [],
+        key='-dCOL0-',
+        vertical_scroll_only=True,
+        size=(200,300),
+        expand_y=True,
+        justification='right',
+        scrollable=True,
+        vertical_alignment='t',
+    )],
+]
+
+# Primary layout
 layout = [
-     [sg.Text("Main Window")],
+     [sg.Text("Main Window", relief="solid", font=(12))],
+     [upArrow1, upArrow2, downArrow1, downArrow2],
+     [sg.Frame("Frame 0", column0, relief="groove")],
+     [sg.Button("Print")],
      [sg.Button("Exit")]
 ]
 
@@ -86,3 +128,13 @@ while True:
      event, values = window.read()
      if event == sg.WINDOW_CLOSED or event == "Exit":
         break
+     if event == "upArrow1":
+        # Create a new row each time with text + the arrow
+        new_row = [
+            sg.Text("Name:", size=(10,1)), 
+            sg.Text(mojiUpArrow1, font=(10), background_color="OliveDrab3"),
+        ]
+        separator_row = [sg.HSeparator()] # Horizontal separator
+
+        window.extend_layout(window["-dCOL0-"], [new_row, separator_row]) # Extend the column with the text (new row), and the separator
+        window["-dCOL0-"].contents_changed()  # update scroll region
