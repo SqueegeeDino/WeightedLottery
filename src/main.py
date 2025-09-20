@@ -206,14 +206,15 @@ column2 = [
     [sg.Text(f"B = {params['b']}", background_color='white', text_color='black', key="bText"), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
 ]
 
+# Column 3 layout. Player list controls
 column3 = [
-        [sg.Text("Column 0")],
         [sg.Button("Exit", key='Exit2'), sg.Button("Debug")], 
         [sg.Button("Add Inputs"), sg.Input(key='input_add', size=(10,1), default_text="1")],
         [sg.Button("Remove Inputs"), sg.Input(key='input_remove', size=(10,1), default_text="1")],
         [sg.Button("Clear Inputs", tooltip="Reset input fields to default values"), sg.Button("Print Inputs")],
 ]
 
+# Colum 4 layout. Dynamic inputs
 column4 = [
     [sg.Text("Players")],
     [sg.Column(
@@ -304,8 +305,8 @@ tab_layout_1 = [
     [
         sg.Image(filename=image_file),
         sg.VSeparator(),
-        sg.Frame("Player odds", table_area, size=(300,300)), sg.VSeparator(),
-        sg.Frame("Player weights", terminal_output), 
+        sg.Frame("Player Information", table_area, size=(300,300)), sg.VSeparator(),
+        sg.Frame("Main Terminal", terminal_output), 
         sg.Button("Exit"),
     ],
     [
@@ -321,7 +322,7 @@ tab_layout_2 = [
 
 # Full layout: Image and terminal at top, then two colums, then terminal at bottom
 layout = [
-    [sg.TabGroup([[sg.Tab('Main', tab_layout_1), sg.Tab('Tab 2', tab_layout_2)]], key='-TABGROUP-', expand_x=True, expand_y=True, enable_events=True)],
+    [sg.TabGroup([[sg.Tab('Main', tab_layout_1), sg.Tab('Edit players', tab_layout_2)]], key='-TABGROUP-', expand_x=True, expand_y=True, enable_events=True)],
 ]
 
 # Create the window
