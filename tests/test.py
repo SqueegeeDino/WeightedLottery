@@ -110,11 +110,27 @@ column0 = [
     )],
 ]
 
+table_area = [
+    [sg.Table(
+        values=[
+            ['Test 1', mojiDownArrow1],
+            ['Test 2', upArrow1]
+        ],
+        headings=['Head 1', 'Emjoii'],
+        auto_size_columns=True,
+        justification='left',
+        num_rows=10,
+        expand_x=True,
+        expand_y=True,
+    )]
+]
+
 # Primary layout
 layout = [
      [sg.Text("Main Window", relief="solid", font=(12))],
      [upArrow1, downArrow1, neutral],
      [sg.Frame("Frame 0", column0, relief="groove")],
+     [table_area],
      [sg.Button("Print")],
      [sg.Button("Exit")]
 ]

@@ -11,6 +11,7 @@ import os
 # General variables
 rowCount = 0
 trueRowCount = 0
+MAX_WINNERS = 72
 
 # Emojiis using unicode
 mojiUpArrow1 = "▲"
@@ -211,10 +212,24 @@ upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color=
 downArrow1 = sg.Text(f"{mojiDownArrow1}", k="downArrow1", font=(10), background_color="firebrick2", text_color="grey4", enable_events=True)
 neutral = sg.Text(f"{mojiNeutral}", k="neutral", font=(10), background_color="LightSteelBlue3", text_color="grey4", enable_events=True)
 
+# Create 99 empty rows of winners in dynamic col0
+winner_rows = [
+    [sg.Frame(
+        f"Frame {i}",
+        [[sg.Text("Default text, you shouldn't be seeing this.", 
+                  key=f"-WINNER_TEXT_{i}-", 
+                  size=(25,1)),
+          sg.Text(mojiNeutral,key=f'-WINNER_MOJI_{i}-', font=(10), background_color="LightSteelBlue3")]],
+        visible=False,
+        key=f"-WINNER_ROW_{i}-"
+    )]
+    for i in range(MAX_WINNERS)
+]
+
 # Column 0 layout. Dynamic name list
 column0 = [
     [sg.Column(
-        [],
+        winner_rows,
         key='-dCOL0-',
         vertical_scroll_only=True,
         size=(400,250),
@@ -514,6 +529,10 @@ while True:
     
     # Run Lottery button
     if event == "buttonRun":
+        # Hide all previous rounds of winners
+        for i in range(MAX_WINNERS):
+            window[f"-WINNER_ROW_{i}-"].update(visible=False)
+
         lottery_participants = participants.copy()  # Reset participants for new draw
         winners = [] # Reset winners list
         window['-TERMINAL-'].update("")
@@ -533,29 +552,32 @@ while True:
             winnerExpected = int(invertedDict[winner])
 
             # Announce winner
+            ''' Uncomment below to reenable popup of winner announcement'''
             #sg.popup(f"Winner of Round {round_number}:\n "f"{myDict[winner]} (#{winner})", title=f"Winner of Round {round_number}", no_titlebar=True, auto_close=True, auto_close_duration=0.5, button_justification="centered")
             window['-TERMINAL-'].print(f"{round_number}: {myDict[winner]}") # Print winner to terminal. Will likely be deprecated soon
-            # Create a new row each time with text + the arrow
+            # Reveal and update a new row each time with text + the arrow
+            window[f"-WINNER_ROW_{winner}-"].update(
+                f"Position {winner}",
+                visible=True,
+                )
+            window[f"-WINNER_TEXT_{round_number}-"].update(
+                f"{round_number}: " f"{myDict[winner]} | Expected: {winnerExpected}"
+                )
             if round_number < winnerExpected:
-                new_row = [
-                    sg.Text(f"{round_number}: " f"{myDict[winner]} exp pos: {winnerExpected}", size=(25,1)),
-                    sg.Text(mojiUpArrow1, font=(10), background_color="OliveDrab3"),
-                ]
+                window[f"-WINNER_MOJI_{winner}-"].update(
+                    mojiUpArrow1, font=(10), background_color="OliveDrab3"
+                )
+                print(f"Round < Expected {winnerName}")
             elif round_number > winnerExpected:
-                new_row = [
-                    sg.Text(f"{round_number}: " f"{myDict[winner]} exp pos: {winnerExpected}", size=(25,1)),
-                    sg.Text(mojiDownArrow1, font=(10), background_color="coral"),
-                ]  
+                window[f"-WINNER_MOJI_{winner}-"].update(
+                    mojiDownArrow1, font=(10), background_color="coral"
+                )
+                print(f"Round > Expected {winnerName}")
             elif round_number == winnerExpected:
-                new_row = [
-                    sg.Text(f"{round_number}: " f"{myDict[winner]} exp pos: {winnerExpected}", size=(25,1)),
-                    sg.Text(mojiNeutral, font=(10), background_color="LightSteelBlue3"),
-                ]
-            separator_row = [sg.HSeparator()] # Horizontal separator
-
-            window.extend_layout(window["-dCOL0-"], [new_row, separator_row]) # Extend the column with the text (new row), and the separator
-            window["-dCOL0-"].contents_changed()  # update scroll region
-            window.refresh()
+                window[f"-WINNER_MOJI_{winner}-"].update(
+                    mojiNeutral, font=(10), background_color="LightSteelBlue3"
+                )
+                print(f"Round == Expected {winnerName}")
             # Remove winner from participant pool
             index = lottery_participants.index(winner)
             lottery_participants.pop(index)
