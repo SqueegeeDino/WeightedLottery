@@ -364,7 +364,7 @@ tab_layout_1 = [
     [
         sg.VSeparator(),
         sg.Frame("Player Information", table_area, size=(300,300)), sg.VSeparator(),
-        sg.Frame("Column 0", column0)
+        sg.Frame("Results", column0)
     ],
     [
         sg.Column(column1), sg.Column(column2), sg.Frame("Main Terminal", terminal_output), 
@@ -567,17 +567,14 @@ while True:
                 window[f"-WINNER_MOJI_{round_number}-"].update(
                     mojiUpArrow1, background_color="OliveDrab3"
                 )
-                print(f"Round < Expected {round_number}")
             elif round_number > winnerExpected:
                 window[f"-WINNER_MOJI_{round_number}-"].update(
                     mojiDownArrow1, font=(10), background_color="coral"
                 )
-                print(f"Round > Expected {winnerName}")
             elif round_number == winnerExpected:
                 window[f"-WINNER_MOJI_{round_number}-"].update(
                     mojiNeutral, font=(10), background_color="LightSteelBlue3"
                 )
-                print(f"Round == Expected {winnerName}")
             # Remove winner from participant pool
             index = lottery_participants.index(winner)
             lottery_participants.pop(index)
