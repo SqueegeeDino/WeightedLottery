@@ -561,20 +561,20 @@ while True:
                 visible=True,
                 )
             window[f"-WINNER_TEXT_{round_number}-"].update(
-                f"{round_number}: " f"{myDict[winner]} | Expected: {winnerExpected}"
+                f"{myDict[winner]} | Expected: {winnerExpected}"
                 )
             if round_number < winnerExpected:
-                window[f"-WINNER_MOJI_{winner}-"].update(
-                    mojiUpArrow1, font=(10), background_color="OliveDrab3"
+                window[f"-WINNER_MOJI_{round_number}-"].update(
+                    mojiUpArrow1, background_color="OliveDrab3"
                 )
-                print(f"Round < Expected {winnerName}")
+                print(f"Round < Expected {round_number}")
             elif round_number > winnerExpected:
-                window[f"-WINNER_MOJI_{winner}-"].update(
+                window[f"-WINNER_MOJI_{round_number}-"].update(
                     mojiDownArrow1, font=(10), background_color="coral"
                 )
                 print(f"Round > Expected {winnerName}")
             elif round_number == winnerExpected:
-                window[f"-WINNER_MOJI_{winner}-"].update(
+                window[f"-WINNER_MOJI_{round_number}-"].update(
                     mojiNeutral, font=(10), background_color="LightSteelBlue3"
                 )
                 print(f"Round == Expected {winnerName}")
