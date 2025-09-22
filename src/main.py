@@ -212,6 +212,35 @@ upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color=
 downArrow1 = sg.Text(f"{mojiDownArrow1}", k="downArrow1", font=(10), background_color="firebrick2", text_color="grey4", enable_events=True)
 neutral = sg.Text(f"{mojiNeutral}", k="neutral", font=(10), background_color="LightSteelBlue3", text_color="grey4", enable_events=True)
 
+# Table area
+table_area = [
+    [sg.Table(
+        values=[],  # Will be populated later
+        headings=['Player', 'ID', 'Weight', 'Odds'],
+        auto_size_columns=True,
+        display_row_numbers=False,
+        justification='left',
+        key='-TABLE-',
+        num_rows=16,
+        enable_events=True,
+        expand_x=True,
+        expand_y=True,
+        tooltip='Active players and their information'
+    )]
+]
+
+# Terminal output area
+terminal_output = [
+    [sg.Multiline(
+        size=(50, 8), 
+        disabled=True, 
+        autoscroll=True, 
+        key='-TERMINAL-', 
+        background_color='black', 
+        text_color='white'
+    )]
+]
+
 # Create 99 empty rows of winners in dynamic col0
 winner_rows = [
     [sg.Frame(
@@ -232,7 +261,7 @@ column0 = [
         winner_rows,
         key='-dCOL0-',
         vertical_scroll_only=True,
-        size=(400,250),
+        size=(350,500),
         expand_y=True,
         expand_x=True,
         justification='right',
@@ -243,17 +272,10 @@ column0 = [
 
 # Column 1 layout. Buttons and clamp inputs
 column1 = [
-    [sg.Text("Column 1")],
-    [sg.Button("Defaults", key='buttonDefaults', tooltip="Reset weighting equation to default values"),
-     sg.Button("Print", key="buttonPrint"),
-     sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights', enable_events=True, tooltip="Enable weight clamping"),
-     sg.Button("Run Lottery", key='buttonRun', tooltip="Run the lottery with current settings"), sg.Button("Exit"),],
-    [sg.Text("Clamp High"), sg.Input(key='clampHigh', size=(10,1), disabled=True, enable_events=True), sg.VSeparator(), sg.Text("Clamp Low"), sg.Input(key='clampLow', size=(10,1), disabled=True, enable_events=True),],
-]
-
-# Column 2 layout. Slider controls for m, n, x_offset, z, b
-column2 = [
-    [sg.Text("Column 2")],
+    [sg.Text("Terminal")],
+    [sg.Column(terminal_output, key='-COL_TERM')],
+    [sg.Text("Weight controls")],
+    # Sliders
     # Uncomment the following line to enable m slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"M = {params['m']}", background_color='white', text_color='black', key="mText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='mSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
     [sg.Text(f"N =", key="nText"),sg.Input(key="n_Input", size=(5,1), enable_events=True), sg.Slider((1, 10), orientation='h', size=(20, 15), key='nSlider', enable_events=True, disable_number_display=True, resolution=0.01)],
@@ -262,6 +284,17 @@ column2 = [
     # Uncomment the following line to enable z slider. Currently disabled for simplicity. Has no effect on odds, only on weights.
     # [sg.Text(f"Z = {params['z']}", background_color='white', text_color='black', key="zText"), sg.Slider((0.1, 5), orientation='h', size=(20, 15), key='zSlider', enable_events=True, disable_number_display=True, resolution=0.1)],
     [sg.Text(f"B =",key="bText"), sg.Input(key="b_Input", size=(5,1), enable_events=True), sg.Slider((-100, 100), orientation='h', size=(20, 15), key='bSlider', enable_events=True, disable_number_display=True, resolution=1)],
+
+    # Clamping
+    [sg.Checkbox(default=False, text="Clamp Weights", key='clampWeights', enable_events=True, tooltip="Enable weight clamping"),],
+    [sg.Text("Clamp High"), sg.Input(key='clampHigh', size=(10,1), disabled=True, enable_events=True)],
+    [sg.Text("Clamp Low "), sg.Input(key='clampLow', size=(10,1), disabled=True, enable_events=True),],
+    [sg.Button("Run Lottery", key='buttonRun', tooltip="Run the lottery with current settings", size=(16,2), font=("bold"))],
+]
+
+# Column 2 layout
+column2 = [
+
 ]
 
 # Column 3 layout. Player list controls
@@ -279,7 +312,7 @@ column4 = [
         [],              # start with empty row list
         key='-dCOL-',
         vertical_scroll_only=True,
-        size=(200, 300),   # give it a fixed size if you want scroll
+        size=(200, 500),   # give it a fixed size if you want scroll
         expand_y=True,
         justification='right',   # align horizontally
         element_justification='left',  # align inside rows
@@ -294,17 +327,7 @@ plotArea = [
     [sg.Canvas(key='-CANVAS-', size=(400, 200))], # Adjust size as needed
 ]
 
-# Terminal output area
-terminal_output = [
-    [sg.Multiline(
-        size=(50, 8), 
-        disabled=True, 
-        autoscroll=True, 
-        key='-TERMINAL-', 
-        background_color='black', 
-        text_color='white'
-    )]
-]
+
 
 # Terminal output area 2
 terminal_output_2 = [
@@ -318,22 +341,7 @@ terminal_output_2 = [
     )]
 ]
 
-# Table area
-table_area = [
-    [sg.Table(
-        values=[],  # Will be populated later
-        headings=['Player', 'ID', 'Weight', 'Odds'],
-        auto_size_columns=True,
-        display_row_numbers=False,
-        justification='left',
-        key='-TABLE-',
-        num_rows=16,
-        enable_events=True,
-        expand_x=True,
-        expand_y=True,
-        tooltip='Active players and their information'
-    )]
-]
+
 
 # Player count pop up
 while True: # Keep looping popups until user enters a valid number for player count
@@ -358,18 +366,15 @@ swapped_dict = {v: k for k, v in myDict.items()}
 myDict = swapped_dict
 '''
 
+# Menu
+menu_def = [['Menu', ['Defaults', 'Exit']]]
+
 # Tabs
-tab_layout_1 = [
+
+tab_layout_1 = [ # Original tab layout 1, deprecation in progress
     [sg.Push(), sg.Image(filename=header_file), sg.Push()],
     [
-        sg.VSeparator(),
-        sg.Frame("Player Information", table_area, size=(300,300)), sg.VSeparator(),
-        sg.Frame("Results", column0)
-    ],
-    [
-        sg.Column(column1), sg.Column(column2), sg.Frame("Main Terminal", terminal_output), 
-        sg.VSeparator(),
-        #sg.Frame("Plot Area", plotArea)
+        sg.Frame("Results", column0), sg.Frame("Player Information", table_area, size=(300,500), vertical_alignment='t'), sg.Column(column1, vertical_alignment='t')
     ],
 ]
 
@@ -379,11 +384,13 @@ tab_layout_2 = [
 
 # Full layout: Image and terminal at top, then two colums, then terminal at bottom
 layout = [
-    [sg.TabGroup([[sg.Tab('Main', tab_layout_1), sg.Tab('Edit players', tab_layout_2)]], key='-TABGROUP-', expand_x=True, expand_y=True, enable_events=True)],
+    [sg.Menu(menu_def), sg.TabGroup([[sg.Tab('Main', tab_layout_1), sg.Tab('Edit players', tab_layout_2)]], key='-TABGROUP-', expand_x=True, expand_y=True, enable_events=True)],
 ]
 
+
+
 # Create the window
-window = sg.Window("Two Columns with Terminal", layout, finalize=True)
+window = sg.Window("Fantasy Hockey Weighted Lottery", layout, finalize=True)
 
 # === Lottery Logic ===
 # Generate player list
@@ -499,7 +506,7 @@ while True:
             continue
     
     # Defaults button
-    if event == "buttonDefaults":
+    if event == "Defaults":
         # Reset equation and sliders
         params = params_default.copy()
         #window['mSlider'].update(params['m'])
