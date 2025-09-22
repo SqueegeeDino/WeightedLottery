@@ -225,7 +225,7 @@ table_area = [
         enable_events=True,
         expand_x=True,
         expand_y=True,
-        tooltip='Active players and their information'
+        tooltip='Active players and their information',
     )]
 ]
 
@@ -374,7 +374,7 @@ menu_def = [['Menu', ['Defaults', 'Exit']]]
 tab_layout_1 = [ # Original tab layout 1, deprecation in progress
     [sg.Push(), sg.Image(filename=header_file), sg.Push()],
     [
-        sg.Frame("Results", column0), sg.Frame("Player Information", table_area, size=(300,500), vertical_alignment='t'), sg.Column(column1, vertical_alignment='t')
+        sg.Frame("Results", column0, size=(300,500)), sg.Frame("Player Information", table_area, size=(300,500), vertical_alignment='t'), sg.Column(column1, vertical_alignment='t')
     ],
 ]
 
@@ -435,9 +435,11 @@ while True:
     if event == 'n_Input':
         params['n'] = int(values['n_Input'])
         window['nSlider'].update(params['n'])
+        table_populate()
     if event == 'b_Input':
         params['b'] = int(values['b_Input'])
         window['bSlider'].update(params['b'])
+        table_populate()
 
     # Clamping
     if event == 'clampWeights':
@@ -516,9 +518,11 @@ while True:
         window['bSlider'].update(params['b'])
         #window['mText'].update(f"M = {params['m']}")
         window['nText'].update(f"N = {params['n']}")
+        window['n_Input'].update(params['n'])
         #window['xText'].update(f"X = {params['x_offset']}")
         #window['zText'].update(f"Z = {params['z']}")
         window['bText'].update(f"B = {params['b']}")
+        window['b_Input'].update(params['b'])
         # Reset clamping
         window['clampWeights'].update(False)
         clamp_bool = False
