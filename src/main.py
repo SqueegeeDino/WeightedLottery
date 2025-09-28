@@ -202,10 +202,10 @@ def invert_and_renumber(d):
 
 # === GUI Layout ===
 # Logo image
-image_file = os.path.abspath("./src/logo.png")  # Replace with your image file path
+image_file = os.path.abspath("./WeightedLottery/src/logo.png")  # Replace with your image file path
 
 # Header
-header_file = os.path.abspath("./src/header.png")  # Replace with your image file path
+header_file = os.path.abspath("./WeightedLottery/src/header.png")  # Replace with your image file path
 
 # Arrow definitions. These can be clicked if added to the UI directly
 upArrow1 = sg.Text(f"{mojiUpArrow1}", k="upArrow1", font=(10), background_color="green2", text_color="grey4", enable_events=True)
